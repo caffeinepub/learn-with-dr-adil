@@ -8,95 +8,131 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const QuestionInput = IDL.Record({
+export const Id = IDL.Text;
+export const EssayTopic = IDL.Record({ 'id' : Id, 'title' : IDL.Text });
+export const EssayModule = IDL.Record({
+  'id' : Id,
+  'title' : IDL.Text,
+  'moduleType' : IDL.Text,
+  'topics' : IDL.Vec(EssayTopic),
+});
+export const MCQ = IDL.Record({
+  'id' : Id,
+  'moduleId' : Id,
+  'question' : IDL.Text,
   'explanation' : IDL.Text,
-  'correctAnswer' : IDL.Nat,
-  'questionText' : IDL.Text,
-  'moduleCategory' : IDL.Text,
-  'options' : IDL.Vec(IDL.Text),
+  'correctAnswer' : IDL.Text,
+  'subjectId' : Id,
+  'optionA' : IDL.Text,
+  'optionB' : IDL.Text,
+  'optionC' : IDL.Text,
+  'optionD' : IDL.Text,
 });
 export const Module = IDL.Record({
-  'id' : IDL.Nat,
+  'id' : Id,
+  'status' : IDL.Text,
   'title' : IDL.Text,
-  'content' : IDL.Text,
   'description' : IDL.Text,
+  'subjectId' : Id,
 });
-export const Question = IDL.Record({
-  'id' : IDL.Nat,
-  'explanation' : IDL.Text,
-  'correctAnswer' : IDL.Nat,
-  'questionText' : IDL.Text,
-  'moduleCategory' : IDL.Text,
-  'options' : IDL.Vec(IDL.Text),
-});
-export const Time = IDL.Int;
-export const QuizAttempt = IDL.Record({
-  'score' : IDL.Nat,
-  'totalQuestions' : IDL.Nat,
-  'moduleCategory' : IDL.Text,
-  'timestamp' : Time,
+export const Subject = IDL.Record({
+  'id' : Id,
+  'icon' : IDL.Text,
+  'name' : IDL.Text,
+  'color' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
-  'addModule' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
-  'addQuestion' : IDL.Func([QuestionInput], [], []),
-  'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
-  'getModule' : IDL.Func([IDL.Nat], [Module], []),
+  'addEssayModule' : IDL.Func([IDL.Text, EssayModule], [], []),
+  'addEssayTopic' : IDL.Func([IDL.Text, IDL.Text, EssayTopic], [], []),
+  'addMCQ' : IDL.Func([IDL.Text, MCQ], [], []),
+  'addModule' : IDL.Func([IDL.Text, Module], [], []),
+  'addSubject' : IDL.Func([IDL.Text, Subject], [], []),
+  'deleteEssayModule' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'deleteEssayTopic' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'deleteMCQ' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'deleteModule' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'deleteSubject' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'getEssayModules' : IDL.Func([], [IDL.Vec(EssayModule)], ['query']),
+  'getEssayModulesByType' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(EssayModule)],
+      ['query'],
+    ),
+  'getMCQs' : IDL.Func([], [IDL.Vec(MCQ)], ['query']),
+  'getMCQsBySubject' : IDL.Func([IDL.Text], [IDL.Vec(MCQ)], ['query']),
   'getModules' : IDL.Func([], [IDL.Vec(Module)], ['query']),
-  'getQuestion' : IDL.Func([IDL.Nat], [Question], []),
-  'getQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
-  'getQuizAttempts' : IDL.Func([], [IDL.Vec(QuizAttempt)], ['query']),
-  'getTopScores' : IDL.Func([], [IDL.Vec(IDL.Nat)], ['query']),
-  'initialize' : IDL.Func([IDL.Text], [], []),
-  'isAdmin' : IDL.Func([], [IDL.Bool], []),
-  'submitQuiz' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Text], [], []),
+  'getModulesBySubject' : IDL.Func([IDL.Text], [IDL.Vec(Module)], ['query']),
+  'getSubjects' : IDL.Func([], [IDL.Vec(Subject)], ['query']),
+  'updateEssayModule' : IDL.Func([IDL.Text, EssayModule], [], []),
+  'updateMCQ' : IDL.Func([IDL.Text, MCQ], [], []),
+  'updateModule' : IDL.Func([IDL.Text, Module], [], []),
+  'updateSubject' : IDL.Func([IDL.Text, Subject], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const QuestionInput = IDL.Record({
+  const Id = IDL.Text;
+  const EssayTopic = IDL.Record({ 'id' : Id, 'title' : IDL.Text });
+  const EssayModule = IDL.Record({
+    'id' : Id,
+    'title' : IDL.Text,
+    'moduleType' : IDL.Text,
+    'topics' : IDL.Vec(EssayTopic),
+  });
+  const MCQ = IDL.Record({
+    'id' : Id,
+    'moduleId' : Id,
+    'question' : IDL.Text,
     'explanation' : IDL.Text,
-    'correctAnswer' : IDL.Nat,
-    'questionText' : IDL.Text,
-    'moduleCategory' : IDL.Text,
-    'options' : IDL.Vec(IDL.Text),
+    'correctAnswer' : IDL.Text,
+    'subjectId' : Id,
+    'optionA' : IDL.Text,
+    'optionB' : IDL.Text,
+    'optionC' : IDL.Text,
+    'optionD' : IDL.Text,
   });
   const Module = IDL.Record({
-    'id' : IDL.Nat,
+    'id' : Id,
+    'status' : IDL.Text,
     'title' : IDL.Text,
-    'content' : IDL.Text,
     'description' : IDL.Text,
+    'subjectId' : Id,
   });
-  const Question = IDL.Record({
-    'id' : IDL.Nat,
-    'explanation' : IDL.Text,
-    'correctAnswer' : IDL.Nat,
-    'questionText' : IDL.Text,
-    'moduleCategory' : IDL.Text,
-    'options' : IDL.Vec(IDL.Text),
-  });
-  const Time = IDL.Int;
-  const QuizAttempt = IDL.Record({
-    'score' : IDL.Nat,
-    'totalQuestions' : IDL.Nat,
-    'moduleCategory' : IDL.Text,
-    'timestamp' : Time,
+  const Subject = IDL.Record({
+    'id' : Id,
+    'icon' : IDL.Text,
+    'name' : IDL.Text,
+    'color' : IDL.Text,
   });
   
   return IDL.Service({
-    'addModule' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
-    'addQuestion' : IDL.Func([QuestionInput], [], []),
-    'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
-    'getModule' : IDL.Func([IDL.Nat], [Module], []),
+    'addEssayModule' : IDL.Func([IDL.Text, EssayModule], [], []),
+    'addEssayTopic' : IDL.Func([IDL.Text, IDL.Text, EssayTopic], [], []),
+    'addMCQ' : IDL.Func([IDL.Text, MCQ], [], []),
+    'addModule' : IDL.Func([IDL.Text, Module], [], []),
+    'addSubject' : IDL.Func([IDL.Text, Subject], [], []),
+    'deleteEssayModule' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'deleteEssayTopic' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'deleteMCQ' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'deleteModule' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'deleteSubject' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'getEssayModules' : IDL.Func([], [IDL.Vec(EssayModule)], ['query']),
+    'getEssayModulesByType' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(EssayModule)],
+        ['query'],
+      ),
+    'getMCQs' : IDL.Func([], [IDL.Vec(MCQ)], ['query']),
+    'getMCQsBySubject' : IDL.Func([IDL.Text], [IDL.Vec(MCQ)], ['query']),
     'getModules' : IDL.Func([], [IDL.Vec(Module)], ['query']),
-    'getQuestion' : IDL.Func([IDL.Nat], [Question], []),
-    'getQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
-    'getQuizAttempts' : IDL.Func([], [IDL.Vec(QuizAttempt)], ['query']),
-    'getTopScores' : IDL.Func([], [IDL.Vec(IDL.Nat)], ['query']),
-    'initialize' : IDL.Func([IDL.Text], [], []),
-    'isAdmin' : IDL.Func([], [IDL.Bool], []),
-    'submitQuiz' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Text], [], []),
+    'getModulesBySubject' : IDL.Func([IDL.Text], [IDL.Vec(Module)], ['query']),
+    'getSubjects' : IDL.Func([], [IDL.Vec(Subject)], ['query']),
+    'updateEssayModule' : IDL.Func([IDL.Text, EssayModule], [], []),
+    'updateMCQ' : IDL.Func([IDL.Text, MCQ], [], []),
+    'updateModule' : IDL.Func([IDL.Text, Module], [], []),
+    'updateSubject' : IDL.Func([IDL.Text, Subject], [], []),
   });
 };
 

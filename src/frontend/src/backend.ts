@@ -89,103 +89,260 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface QuestionInput {
+export interface MCQ {
+    id: Id;
+    moduleId: Id;
+    question: string;
     explanation: string;
-    correctAnswer: bigint;
-    questionText: string;
-    moduleCategory: string;
-    options: Array<string>;
+    correctAnswer: string;
+    subjectId: Id;
+    optionA: string;
+    optionB: string;
+    optionC: string;
+    optionD: string;
 }
-export type Time = bigint;
-export interface Question {
-    id: bigint;
-    explanation: string;
-    correctAnswer: bigint;
-    questionText: string;
-    moduleCategory: string;
-    options: Array<string>;
+export interface EssayModule {
+    id: Id;
+    title: string;
+    moduleType: string;
+    topics: Array<EssayTopic>;
 }
-export interface QuizAttempt {
-    score: bigint;
-    totalQuestions: bigint;
-    moduleCategory: string;
-    timestamp: Time;
+export interface EssayTopic {
+    id: Id;
+    title: string;
+}
+export interface Subject {
+    id: Id;
+    icon: string;
+    name: string;
+    color: string;
 }
 export interface Module {
-    id: bigint;
+    id: Id;
+    status: string;
     title: string;
-    content: string;
     description: string;
+    subjectId: Id;
 }
+export type Id = string;
 export interface backendInterface {
-    addModule(title: string, description: string, content: string): Promise<void>;
-    addQuestion(input: QuestionInput): Promise<void>;
-    deleteQuestion(id: bigint): Promise<void>;
-    getModule(moduleId: bigint): Promise<Module>;
+    addEssayModule(adminToken: string, em: EssayModule): Promise<void>;
+    addEssayTopic(adminToken: string, moduleId: string, topic: EssayTopic): Promise<void>;
+    addMCQ(adminToken: string, mcq: MCQ): Promise<void>;
+    addModule(adminToken: string, mod: Module): Promise<void>;
+    addSubject(adminToken: string, subject: Subject): Promise<void>;
+    deleteEssayModule(adminToken: string, id: string): Promise<void>;
+    deleteEssayTopic(adminToken: string, moduleId: string, topicId: string): Promise<void>;
+    deleteMCQ(adminToken: string, id: string): Promise<void>;
+    deleteModule(adminToken: string, id: string): Promise<void>;
+    deleteSubject(adminToken: string, id: string): Promise<void>;
+    getEssayModules(): Promise<Array<EssayModule>>;
+    getEssayModulesByType(moduleType: string): Promise<Array<EssayModule>>;
+    getMCQs(): Promise<Array<MCQ>>;
+    getMCQsBySubject(subjectId: string): Promise<Array<MCQ>>;
     getModules(): Promise<Array<Module>>;
-    getQuestion(questionId: bigint): Promise<Question>;
-    getQuestions(): Promise<Array<Question>>;
-    getQuizAttempts(): Promise<Array<QuizAttempt>>;
-    getTopScores(): Promise<Array<bigint>>;
-    initialize(name: string): Promise<void>;
-    isAdmin(): Promise<boolean>;
-    submitQuiz(score: bigint, totalQuestions: bigint, moduleCategory: string): Promise<void>;
+    getModulesBySubject(subjectId: string): Promise<Array<Module>>;
+    getSubjects(): Promise<Array<Subject>>;
+    updateEssayModule(adminToken: string, em: EssayModule): Promise<void>;
+    updateMCQ(adminToken: string, mcq: MCQ): Promise<void>;
+    updateModule(adminToken: string, mod: Module): Promise<void>;
+    updateSubject(adminToken: string, subject: Subject): Promise<void>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async addModule(arg0: string, arg1: string, arg2: string): Promise<void> {
+    async addEssayModule(arg0: string, arg1: EssayModule): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addModule(arg0, arg1, arg2);
+                const result = await this.actor.addEssayModule(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addModule(arg0, arg1, arg2);
+            const result = await this.actor.addEssayModule(arg0, arg1);
             return result;
         }
     }
-    async addQuestion(arg0: QuestionInput): Promise<void> {
+    async addEssayTopic(arg0: string, arg1: string, arg2: EssayTopic): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addQuestion(arg0);
+                const result = await this.actor.addEssayTopic(arg0, arg1, arg2);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addQuestion(arg0);
+            const result = await this.actor.addEssayTopic(arg0, arg1, arg2);
             return result;
         }
     }
-    async deleteQuestion(arg0: bigint): Promise<void> {
+    async addMCQ(arg0: string, arg1: MCQ): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.deleteQuestion(arg0);
+                const result = await this.actor.addMCQ(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.deleteQuestion(arg0);
+            const result = await this.actor.addMCQ(arg0, arg1);
             return result;
         }
     }
-    async getModule(arg0: bigint): Promise<Module> {
+    async addModule(arg0: string, arg1: Module): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.getModule(arg0);
+                const result = await this.actor.addModule(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getModule(arg0);
+            const result = await this.actor.addModule(arg0, arg1);
+            return result;
+        }
+    }
+    async addSubject(arg0: string, arg1: Subject): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addSubject(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addSubject(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteEssayModule(arg0: string, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteEssayModule(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteEssayModule(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteEssayTopic(arg0: string, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteEssayTopic(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteEssayTopic(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async deleteMCQ(arg0: string, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteMCQ(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteMCQ(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteModule(arg0: string, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteModule(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteModule(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteSubject(arg0: string, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteSubject(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteSubject(arg0, arg1);
+            return result;
+        }
+    }
+    async getEssayModules(): Promise<Array<EssayModule>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getEssayModules();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getEssayModules();
+            return result;
+        }
+    }
+    async getEssayModulesByType(arg0: string): Promise<Array<EssayModule>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getEssayModulesByType(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getEssayModulesByType(arg0);
+            return result;
+        }
+    }
+    async getMCQs(): Promise<Array<MCQ>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMCQs();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMCQs();
+            return result;
+        }
+    }
+    async getMCQsBySubject(arg0: string): Promise<Array<MCQ>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMCQsBySubject(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMCQsBySubject(arg0);
             return result;
         }
     }
@@ -203,101 +360,87 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getQuestion(arg0: bigint): Promise<Question> {
+    async getModulesBySubject(arg0: string): Promise<Array<Module>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getQuestion(arg0);
+                const result = await this.actor.getModulesBySubject(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getQuestion(arg0);
+            const result = await this.actor.getModulesBySubject(arg0);
             return result;
         }
     }
-    async getQuestions(): Promise<Array<Question>> {
+    async getSubjects(): Promise<Array<Subject>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getQuestions();
+                const result = await this.actor.getSubjects();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getQuestions();
+            const result = await this.actor.getSubjects();
             return result;
         }
     }
-    async getQuizAttempts(): Promise<Array<QuizAttempt>> {
+    async updateEssayModule(arg0: string, arg1: EssayModule): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.getQuizAttempts();
+                const result = await this.actor.updateEssayModule(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getQuizAttempts();
+            const result = await this.actor.updateEssayModule(arg0, arg1);
             return result;
         }
     }
-    async getTopScores(): Promise<Array<bigint>> {
+    async updateMCQ(arg0: string, arg1: MCQ): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.getTopScores();
+                const result = await this.actor.updateMCQ(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getTopScores();
+            const result = await this.actor.updateMCQ(arg0, arg1);
             return result;
         }
     }
-    async initialize(arg0: string): Promise<void> {
+    async updateModule(arg0: string, arg1: Module): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.initialize(arg0);
+                const result = await this.actor.updateModule(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.initialize(arg0);
+            const result = await this.actor.updateModule(arg0, arg1);
             return result;
         }
     }
-    async isAdmin(): Promise<boolean> {
+    async updateSubject(arg0: string, arg1: Subject): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.isAdmin();
+                const result = await this.actor.updateSubject(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.isAdmin();
-            return result;
-        }
-    }
-    async submitQuiz(arg0: bigint, arg1: bigint, arg2: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.submitQuiz(arg0, arg1, arg2);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.submitQuiz(arg0, arg1, arg2);
+            const result = await this.actor.updateSubject(arg0, arg1);
             return result;
         }
     }

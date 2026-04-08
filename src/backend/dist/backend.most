@@ -1,59 +1,65 @@
 // Version: 1.0.0
 type Data__791452850<K, V> =
   {var count : Nat__490723111; kvs : [var ?(K, V)]};
-type Int__270357528 = Int__616954475;
-type Int__616954475 = Int;
+type EssayModule__793859539 =
+  {
+    id : Id__614397628;
+    moduleType : Text;
+    title : Text;
+    topics : [EssayTopic__151389900]
+  };
+type EssayTopic__151389900 = {id : Id__614397628; title : Text};
+type Id__389469852 = Text;
+type Id__614397628 = Id__389469852;
 type Internal__8484328<K, V> =
   {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
 type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
-type Module__1062625809 =
-  {content : Text; description : Text; id : Nat; title : Text};
+type MCQ__1015458682 =
+  {
+    correctAnswer : Text;
+    explanation : Text;
+    id : Id__614397628;
+    moduleId : Id__614397628;
+    optionA : Text;
+    optionB : Text;
+    optionC : Text;
+    optionD : Text;
+    question : Text;
+    subjectId : Id__614397628
+  };
+type Module__629478047 =
+  {
+    description : Text;
+    id : Id__614397628;
+    status : Text;
+    subjectId : Id__614397628;
+    title : Text
+  };
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
-type Permission__371514833 = {#admin; #student};
-type Question__879138514 =
-  {
-    correctAnswer : Nat;
-    explanation : Text;
-    id : Nat;
-    moduleCategory : Text;
-    options : [Text];
-    questionText : Text
-  };
-type QuizAttempt__859611161 =
-  {
-    moduleCategory : Text;
-    score : Nat;
-    timestamp : Time__900049286;
-    totalQuestions : Nat
-  };
-type Time__796480547 = Int__270357528;
-type Time__900049286 = Time__796480547;
-type User__831686142 =
-  {id : Principal; name : Text; permission : Permission__371514833};
+type Subject__586673690 =
+  {color : Text; icon : Text; id : Id__614397628; name : Text};
 actor {
-  stable attempts :
+  stable essayModules :
     {
-      var root : Node__46230540<Principal, [QuizAttempt__859611161]>;
+      var root : Node__46230540<Text, EssayModule__793859539>;
       var size : Nat__490723111
     };
-  stable var moduleId : Nat;
+  stable mcqs :
+    {
+      var root : Node__46230540<Text, MCQ__1015458682>;
+      var size : Nat__490723111
+    };
   stable modules :
     {
-      var root : Node__46230540<Nat, Module__1062625809>;
+      var root : Node__46230540<Text, Module__629478047>;
       var size : Nat__490723111
     };
-  stable var questionId : Nat;
-  stable questions :
+  stable subjects :
     {
-      var root : Node__46230540<Nat, Question__879138514>;
-      var size : Nat__490723111
-    };
-  stable users :
-    {
-      var root : Node__46230540<Principal, User__831686142>;
+      var root : Node__46230540<Text, Subject__586673690>;
       var size : Nat__490723111
     }
 };

@@ -1,10 +1,15 @@
+import type { AdminData } from "@/hooks/useBackendData";
 import type { TabId } from "../App";
 
 interface AboutPageProps {
   onNavigate: (tab: TabId) => void;
+  adminData: AdminData;
 }
 
-export default function AboutPage({ onNavigate }: AboutPageProps) {
+export default function AboutPage({
+  onNavigate,
+  adminData: _,
+}: AboutPageProps) {
   return (
     <div className="min-h-screen bg-surface font-body text-on-surface">
       {/* Top App Bar */}
@@ -85,7 +90,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
         </div>
 
         {/* Mission Card */}
-        <div className="bg-surface-container-low border-2 border-black rounded-3xl shadow-[6px_6px_0_0_rgba(0,0,0,1)] p-6">
+        <div className="bg-[#f9f9f9] border-2 border-black rounded-3xl shadow-[6px_6px_0_0_rgba(0,0,0,1)] p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-red-600 rounded-xl border-2 border-black flex items-center justify-center text-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
               <span className="material-symbols-outlined text-xl leading-none">
@@ -122,7 +127,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
 
         {/* Closing Quote — featured card */}
         <div className="bg-red-600 border-2 border-black rounded-3xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-8 text-center relative overflow-hidden">
-          {/* Decorative background circle */}
+          {/* Decorative background circles */}
           <div className="absolute -top-8 -right-8 w-32 h-32 bg-red-500 rounded-full opacity-40 border-2 border-black" />
           <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-red-700 rounded-full opacity-30 border-2 border-black" />
           <div className="relative z-10">
@@ -143,6 +148,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
+            data-ocid="about.nav.modules"
             onClick={() => onNavigate("modules")}
             className="flex flex-col items-center gap-2 p-5 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:bg-red-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
           >
@@ -155,6 +161,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
           </button>
           <button
             type="button"
+            data-ocid="about.nav.pyq"
             onClick={() => onNavigate("pyq")}
             className="flex flex-col items-center gap-2 p-5 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:bg-red-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
           >

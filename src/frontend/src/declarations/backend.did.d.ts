@@ -10,47 +10,61 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface Module {
-  'id' : bigint,
+export interface EssayModule {
+  'id' : Id,
   'title' : string,
-  'content' : string,
+  'moduleType' : string,
+  'topics' : Array<EssayTopic>,
+}
+export interface EssayTopic { 'id' : Id, 'title' : string }
+export type Id = string;
+export interface MCQ {
+  'id' : Id,
+  'moduleId' : Id,
+  'question' : string,
+  'explanation' : string,
+  'correctAnswer' : string,
+  'subjectId' : Id,
+  'optionA' : string,
+  'optionB' : string,
+  'optionC' : string,
+  'optionD' : string,
+}
+export interface Module {
+  'id' : Id,
+  'status' : string,
+  'title' : string,
   'description' : string,
+  'subjectId' : Id,
 }
-export interface Question {
-  'id' : bigint,
-  'explanation' : string,
-  'correctAnswer' : bigint,
-  'questionText' : string,
-  'moduleCategory' : string,
-  'options' : Array<string>,
+export interface Subject {
+  'id' : Id,
+  'icon' : string,
+  'name' : string,
+  'color' : string,
 }
-export interface QuestionInput {
-  'explanation' : string,
-  'correctAnswer' : bigint,
-  'questionText' : string,
-  'moduleCategory' : string,
-  'options' : Array<string>,
-}
-export interface QuizAttempt {
-  'score' : bigint,
-  'totalQuestions' : bigint,
-  'moduleCategory' : string,
-  'timestamp' : Time,
-}
-export type Time = bigint;
 export interface _SERVICE {
-  'addModule' : ActorMethod<[string, string, string], undefined>,
-  'addQuestion' : ActorMethod<[QuestionInput], undefined>,
-  'deleteQuestion' : ActorMethod<[bigint], undefined>,
-  'getModule' : ActorMethod<[bigint], Module>,
+  'addEssayModule' : ActorMethod<[string, EssayModule], undefined>,
+  'addEssayTopic' : ActorMethod<[string, string, EssayTopic], undefined>,
+  'addMCQ' : ActorMethod<[string, MCQ], undefined>,
+  'addModule' : ActorMethod<[string, Module], undefined>,
+  'addSubject' : ActorMethod<[string, Subject], undefined>,
+  'deleteEssayModule' : ActorMethod<[string, string], undefined>,
+  'deleteEssayTopic' : ActorMethod<[string, string, string], undefined>,
+  'deleteMCQ' : ActorMethod<[string, string], undefined>,
+  'deleteModule' : ActorMethod<[string, string], undefined>,
+  'deleteSubject' : ActorMethod<[string, string], undefined>,
+  'getEssayModules' : ActorMethod<[], Array<EssayModule>>,
+  'getEssayModulesByType' : ActorMethod<[string], Array<EssayModule>>,
+  'getMCQs' : ActorMethod<[], Array<MCQ>>,
+  'getMCQsBySubject' : ActorMethod<[string], Array<MCQ>>,
   'getModules' : ActorMethod<[], Array<Module>>,
-  'getQuestion' : ActorMethod<[bigint], Question>,
-  'getQuestions' : ActorMethod<[], Array<Question>>,
-  'getQuizAttempts' : ActorMethod<[], Array<QuizAttempt>>,
-  'getTopScores' : ActorMethod<[], Array<bigint>>,
-  'initialize' : ActorMethod<[string], undefined>,
-  'isAdmin' : ActorMethod<[], boolean>,
-  'submitQuiz' : ActorMethod<[bigint, bigint, string], undefined>,
+  'getModulesBySubject' : ActorMethod<[string], Array<Module>>,
+  'getSubjects' : ActorMethod<[], Array<Subject>>,
+  'updateEssayModule' : ActorMethod<[string, EssayModule], undefined>,
+  'updateMCQ' : ActorMethod<[string, MCQ], undefined>,
+  'updateModule' : ActorMethod<[string, Module], undefined>,
+  'updateSubject' : ActorMethod<[string, Subject], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

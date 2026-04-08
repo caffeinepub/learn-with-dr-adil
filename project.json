@@ -1,0 +1,24 @@
+{
+  "overview": "Learn with Dr. Adil is a medical exam prep platform for students, featuring persistent backend storage for all admin-managed content. The admin can add subjects, modules, MCQs, essays, short essays, and short notes — all instantly visible to every student. Students can browse modules, practice MCQs directly from any module, and review previous year questions with completion tracking.",
+  "features": [
+    "Persistent Motoko backend storing all content (subjects, modules, MCQs, essays, short essays, short notes)",
+    "Admin panel (single Content Page) with sub-tabs for all content types — saves write directly to backend",
+    "Student-facing Modules page: only backend subjects shown, two-step subject→module drill-down",
+    "MCQ quiz launches directly from 'Start Practice' button — no extra tabs",
+    "PYQ archive: Essays, Short Essays, Short Notes cards with expandable modules/topics and completion checkboxes",
+    "Hidden admin access: 5-tap logo trigger + password 'Tesla369'",
+    "Neo-brutalist UI: Plus Jakarta Sans, Be Vietnam Pro, Material Symbols Outlined, custom Tailwind",
+    "Responsive layout for desktop and mobile",
+    "All admin edits instantly visible to all students after save"
+  ],
+  "category": "education",
+  "tags": [
+    "medical",
+    "education",
+    "exam-prep",
+    "mcq",
+    "study",
+    "neo-brutalist"
+  ],
+  "last_updated": "2026-04-08T13:36:52.174Z"
+}

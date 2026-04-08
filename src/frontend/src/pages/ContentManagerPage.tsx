@@ -21,7 +21,6 @@ export default function ContentManagerPage({
   onBack,
 }: ContentManagerPageProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>("modules");
-  const [savedToast, setSavedToast] = useState(false);
 
   const tabs: Array<{ id: SidebarTab; label: string; icon: string }> = [
     { id: "modules", label: "Modules", icon: "library_books" },
@@ -30,16 +29,6 @@ export default function ContentManagerPage({
     { id: "short-essays", label: "Short Essays", icon: "article" },
     { id: "short-notes", label: "Short Notes", icon: "edit_note" },
   ];
-
-  function handleSave() {
-    // Show confirmation immediately — data is already committed to the shared
-    // store via individual modal save buttons. This button just provides a
-    // visual confirmation and navigates back so changes are visible on student pages.
-    setSavedToast(true);
-    setTimeout(() => {
-      setSavedToast(false);
-    }, 2000);
-  }
 
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen">
@@ -51,6 +40,7 @@ export default function ContentManagerPage({
             data-ocid="content_manager.back.button"
             onClick={onBack}
             className="active:translate-x-[2px] active:translate-y-[2px] transition-all p-2 hover:bg-zinc-100 rounded-full"
+            aria-label="Back to student view"
           >
             <span className="material-symbols-outlined text-primary">
               arrow_back
@@ -60,32 +50,14 @@ export default function ContentManagerPage({
             Content Manager
           </h1>
         </div>
-        <button
-          type="button"
-          data-ocid="content_manager.save.button"
-          onClick={handleSave}
-          className={`active:translate-x-[2px] active:translate-y-[2px] transition-all px-6 py-2 rounded-full border-2 border-black font-headline font-bold text-sm flex items-center gap-2 shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:shadow-none ${
-            savedToast
-              ? "bg-green-600 text-white"
-              : "bg-primary-container text-white"
-          }`}
-        >
-          <span className="material-symbols-outlined text-sm">
-            {savedToast ? "check" : "save"}
+        {/* Live indicator */}
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border-2 border-green-400 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-[11px] font-black font-headline uppercase tracking-widest text-green-700">
+            Changes go live instantly
           </span>
-          {savedToast ? "Saved!" : "Save"}
-        </button>
-      </header>
-
-      {/* Saved toast */}
-      {savedToast && (
-        <div className="fixed top-20 right-4 z-[60] bg-green-600 text-white border-2 border-black rounded-xl px-4 py-2 font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-          <span className="material-symbols-outlined text-sm">
-            check_circle
-          </span>
-          Changes saved — live on student pages now!
         </div>
-      )}
+      </header>
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-72 z-40 bg-[#f9f9f9] border-r-2 border-black pt-20 hidden md:block overflow-y-auto">

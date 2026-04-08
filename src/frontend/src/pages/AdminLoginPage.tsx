@@ -116,6 +116,7 @@ export default function AdminLoginPage({ onSuccess }: AdminLoginPageProps) {
                   type="button"
                   data-ocid="admin.login.toggle"
                   onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-5 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors focus:outline-none"
                 >
                   <span className="material-symbols-outlined">
@@ -157,13 +158,12 @@ export default function AdminLoginPage({ onSuccess }: AdminLoginPageProps) {
 
         {/* Footer */}
         <div className="mt-10 flex justify-between items-center px-4">
-          <button
-            type="button"
-            className="text-xs font-black font-label uppercase tracking-widest text-secondary hover:text-primary transition-colors flex items-center gap-1.5"
-          >
-            <span className="material-symbols-outlined text-sm">help</span>
-            Support
-          </button>
+          <div className="text-xs font-black font-label uppercase tracking-widest text-secondary flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm">
+              admin_panel_settings
+            </span>
+            Admin Only
+          </div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(175,16,26,0.4)]" />
             <span className="text-[11px] font-black font-label uppercase tracking-widest text-secondary">

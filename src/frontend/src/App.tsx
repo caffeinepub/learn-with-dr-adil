@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
-import { useAdminDataStore } from "@/hooks/useAdminData";
+import { useBackendData } from "@/hooks/useBackendData";
 import { useRef, useState } from "react";
 import AboutPage from "./pages/AboutPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -24,7 +24,7 @@ export default function App() {
   // admin Content Manager are immediately visible on the student-facing Modules page.
   // useAdminDataStore() is called directly here (no Context Provider needed) — it
   // creates the state once in this component and threads it down as props.
-  const adminData = useAdminDataStore();
+  const adminData = useBackendData();
 
   // Hidden logo tap trigger refs
   const tapCountRef = useRef(0);
@@ -79,7 +79,7 @@ export default function App() {
   if (activeTab === "about") {
     return (
       <>
-        <AboutPage onNavigate={handleTabChange} />
+        <AboutPage onNavigate={handleTabChange} adminData={adminData} />
         <Toaster />
       </>
     );
@@ -101,7 +101,7 @@ export default function App() {
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return <HomePage onNavigate={handleTabChange} />;
+        return <HomePage onNavigate={handleTabChange} adminData={adminData} />;
       case "mcq":
         return (
           <MCQPage
@@ -129,7 +129,7 @@ export default function App() {
           <AdminLoginPage onSuccess={() => setIsAdminAuthenticated(true)} />
         );
       default:
-        return <HomePage onNavigate={handleTabChange} />;
+        return <HomePage onNavigate={handleTabChange} adminData={adminData} />;
     }
   };
 

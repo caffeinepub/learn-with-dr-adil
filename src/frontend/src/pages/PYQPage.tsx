@@ -1,103 +1,292 @@
-import type { AdminData } from "@/hooks/useAdminData";
+import type { AdminData, LocalEssayModule } from "@/hooks/useAdminData";
 import { useState } from "react";
 
 type ExpandedCard = "essays" | "short-essays" | "short-notes" | null;
 
+// ── Accent config per section ────────────────────────────────────────────────
+const ACCENTS = {
+  essays: {
+    icon: "description",
+    label: "HIGH YIELD",
+    iconBg: "bg-primary",
+    iconText: "text-primary-foreground",
+    badgeBg: "bg-primary/10 text-primary",
+    progressBar: "bg-primary",
+    progressLabel: "text-primary",
+    headerBorder: "border-primary/30",
+    checkFill: "bg-primary",
+    ctaHover: "group-hover:text-primary",
+    subtitle: "Long-form comprehensive answers",
+  },
+  shortEssays: {
+    icon: "article",
+    label: "CRITICAL",
+    iconBg: "bg-secondary",
+    iconText: "text-secondary-foreground",
+    badgeBg: "bg-secondary/10 text-secondary",
+    progressBar: "bg-secondary",
+    progressLabel: "text-secondary",
+    headerBorder: "border-secondary/30",
+    checkFill: "bg-secondary",
+    ctaHover: "group-hover:text-secondary",
+    subtitle: "Mid-range technical explanations",
+  },
+  shortNotes: {
+    icon: "edit_note",
+    label: "FREQUENT",
+    iconBg: "bg-accent",
+    iconText: "text-accent-foreground",
+    badgeBg: "bg-accent/10 text-accent",
+    progressBar: "bg-accent",
+    progressLabel: "text-accent",
+    headerBorder: "border-accent/30",
+    checkFill: "bg-accent",
+    ctaHover: "group-hover:text-accent",
+    subtitle: "Quick definitions and diagrams",
+  },
+} as const;
+
+// ── Archive Topic List ────────────────────────────────────────────────────────
 function ArchiveTopicList({
   modules,
   toggleTopic,
-  accentClass,
-  accentBorderClass,
+  accent,
 }: {
-  modules: AdminData["essayModules"];
+  modules: LocalEssayModule[];
   toggleTopic: (moduleId: string, topicId: string) => void;
-  accentClass: string;
-  accentBorderClass: string;
+  accent: (typeof ACCENTS)[keyof typeof ACCENTS];
 }) {
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+
   if (modules.length === 0) {
     return (
-      <p className="text-center text-sm font-bold text-zinc-400 uppercase tracking-wider py-4">
-        No topics added yet.
-      </p>
+      <div
+        data-ocid="pyq.empty-state"
+        className="flex flex-col items-center gap-2 py-8"
+      >
+        <span
+          className="material-symbols-outlined text-muted-foreground text-4xl"
+          style={{ fontVariationSettings: "'FILL' 0, 'wght' 300" }}
+        >
+          inbox
+        </span>
+        <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+          No content added yet
+        </p>
+      </div>
     );
   }
+
   return (
-    <>
+    <div className="space-y-4">
       {modules.map((mod) => {
         const modDone = mod.topics.filter((t) => t.done).length;
         const modTotal = mod.topics.length;
         const modPct =
           modTotal > 0 ? Math.round((modDone / modTotal) * 100) : 0;
+        const isExpanded = expandedModule === mod.id;
+
         return (
-          <div key={mod.id}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-headline font-extrabold text-base">
-                {mod.name}
-              </h3>
-              <span className="text-xs font-black font-headline text-secondary">
-                {modDone}/{modTotal} &bull; {modPct}%
-              </span>
-            </div>
-            <div className="h-2 w-full bg-surface-container border border-black rounded-full overflow-hidden mb-3">
-              <div
-                className={`h-full ${accentClass} ${accentBorderClass} transition-all`}
-                style={{ width: `${modPct}%` }}
-              />
-            </div>
-            <ul className="space-y-2">
-              {mod.topics.length === 0 && (
-                <li className="text-xs text-zinc-400 font-bold uppercase tracking-wider text-center py-2">
-                  No topics
-                </li>
-              )}
-              {mod.topics.map((topic) => (
-                <li
-                  key={topic.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-low transition-colors"
+          <div
+            key={mod.id}
+            className="border-2 border-black rounded-xl overflow-hidden neo-brutal-shadow-sm"
+          >
+            {/* Module Header */}
+            <button
+              type="button"
+              data-ocid={`pyq.module.${mod.id}`}
+              onClick={() =>
+                setExpandedModule((prev) => (prev === mod.id ? null : mod.id))
+              }
+              className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span
+                  className={`material-symbols-outlined text-base ${accent.progressLabel} shrink-0`}
+                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleTopic(mod.id, topic.id)}
-                    className={`w-5 h-5 rounded border-2 border-black flex items-center justify-center shrink-0 transition-all active:scale-90 ${
-                      topic.done
-                        ? `${accentClass} border-current`
-                        : "bg-white hover:bg-surface-container"
-                    }`}
-                    aria-label={
-                      topic.done ? "Mark incomplete" : "Mark complete"
-                    }
-                  >
-                    {topic.done && (
-                      <span
-                        className="material-symbols-outlined text-white"
-                        style={{
-                          fontSize: "12px",
-                          fontVariationSettings: "'FILL' 1, 'wght' 700",
-                        }}
+                  folder
+                </span>
+                <span className="font-headline font-bold text-sm text-foreground truncate">
+                  {mod.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 shrink-0 ml-2">
+                <span className="text-xs font-black font-headline text-muted-foreground">
+                  {modDone}/{modTotal}
+                </span>
+                <div className="w-16 h-2 bg-border border border-black rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${accent.progressBar} transition-all`}
+                    style={{ width: `${modPct}%` }}
+                  />
+                </div>
+                <span className="material-symbols-outlined text-muted-foreground text-base">
+                  {isExpanded ? "expand_less" : "expand_more"}
+                </span>
+              </div>
+            </button>
+
+            {/* Topics */}
+            {isExpanded && (
+              <div className="border-t-2 border-black p-4">
+                {mod.topics.length === 0 ? (
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center py-3">
+                    No topics added
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {mod.topics.map((topic) => (
+                      <li
+                        key={topic.id}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 transition-colors"
                       >
-                        check
-                      </span>
-                    )}
-                  </button>
-                  <span
-                    className={`text-sm font-medium font-body flex-1 ${
-                      topic.done
-                        ? "line-through text-zinc-400"
-                        : "text-on-surface"
-                    }`}
-                  >
-                    {topic.title}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                        <button
+                          type="button"
+                          data-ocid={`pyq.topic.${topic.id}`}
+                          onClick={() => toggleTopic(mod.id, topic.id)}
+                          className={`w-5 h-5 rounded border-2 border-black flex items-center justify-center shrink-0 transition-all active:scale-90 neo-brutal-press ${
+                            topic.done
+                              ? `${accent.checkFill} border-transparent`
+                              : "bg-background hover:bg-muted/50"
+                          }`}
+                          aria-label={
+                            topic.done ? "Mark incomplete" : "Mark complete"
+                          }
+                        >
+                          {topic.done && (
+                            <span
+                              className="material-symbols-outlined text-background"
+                              style={{
+                                fontSize: "12px",
+                                fontVariationSettings: "'FILL' 1, 'wght' 700",
+                              }}
+                            >
+                              check
+                            </span>
+                          )}
+                        </button>
+                        <span
+                          className={`text-sm font-medium font-body flex-1 min-w-0 break-words ${
+                            topic.done
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {topic.title}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
+// ── Section Card ──────────────────────────────────────────────────────────────
+function SectionCard({
+  id,
+  title,
+  accent,
+  progress,
+  expanded,
+  onToggle,
+  children,
+}: {
+  id: string;
+  title: string;
+  accent: (typeof ACCENTS)[keyof typeof ACCENTS];
+  progress: { done: number; total: number; pct: number };
+  expanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      data-ocid={`pyq.${id}.card`}
+      className="bg-card border-2 border-black rounded-xl neo-brutal-shadow overflow-hidden"
+    >
+      {/* Card Header Button */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full p-6 text-left group transition-all hover:-translate-y-0.5 hover:-translate-x-0.5 neo-brutal-press active:shadow-none"
+      >
+        <div className="flex items-start justify-between mb-5">
+          <div className="flex items-center gap-4">
+            <div
+              className={`w-14 h-14 ${accent.iconBg} ${accent.iconText} border-2 border-black rounded-xl flex items-center justify-center neo-brutal-shadow-sm shrink-0`}
+            >
+              <span
+                className="material-symbols-outlined text-3xl"
+                style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
+              >
+                {accent.icon}
+              </span>
+            </div>
+            <div>
+              <h2 className="font-headline text-xl font-extrabold uppercase tracking-wide text-foreground">
+                {title}
+              </h2>
+              <p className="text-sm text-muted-foreground font-medium">
+                {accent.subtitle}
+              </p>
+            </div>
+          </div>
+          <span
+            className={`${accent.badgeBg} text-xs px-3 py-1 rounded-full border-2 border-black font-bold font-headline uppercase shrink-0`}
+          >
+            {accent.label}
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span
+              className={`text-xs font-headline font-extrabold ${accent.progressLabel} uppercase tracking-wider`}
+            >
+              Progress
+            </span>
+            <span className="text-xs font-bold text-muted-foreground">
+              {progress.done}/{progress.total} topics &bull; {progress.pct}%
+            </span>
+          </div>
+          <div className="h-3 w-full bg-muted border-2 border-black rounded-full overflow-hidden">
+            <div
+              className={`h-full ${accent.progressBar} transition-all duration-500`}
+              style={{ width: `${progress.pct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-5 flex items-center justify-end">
+          <div
+            className={`flex items-center gap-2 font-headline font-bold text-sm transition-colors text-muted-foreground ${accent.ctaHover}`}
+          >
+            {expanded ? "HIDE TOPICS" : "START ARCHIVE"}
+            <span className="material-symbols-outlined text-base">
+              {expanded ? "expand_less" : "arrow_forward"}
+            </span>
+          </div>
+        </div>
+      </button>
+
+      {/* Expanded Content */}
+      {expanded && (
+        <div className="border-t-2 border-black px-6 pb-6 pt-5">{children}</div>
+      )}
+    </section>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function PYQPage({ adminData }: { adminData: AdminData }) {
   const {
     essayModules,
@@ -114,8 +303,7 @@ export default function PYQPage({ adminData }: { adminData: AdminData }) {
     setExpandedCard((prev) => (prev === card ? null : card));
   }
 
-  // Progress helpers
-  function calcProgress(modules: typeof essayModules) {
+  function calcProgress(modules: LocalEssayModule[]) {
     const total = modules.reduce((s, m) => s + m.topics.length, 0);
     const done = modules.reduce(
       (s, m) => s + m.topics.filter((t) => t.done).length,
@@ -133,252 +321,156 @@ export default function PYQPage({ adminData }: { adminData: AdminData }) {
   const shortNoteProgress = calcProgress(shortNoteModules);
 
   return (
-    <div className="bg-surface font-body text-on-surface min-h-screen pb-24 relative">
-      {/* Background Pattern */}
+    <div className="bg-background font-body text-foreground min-h-screen pb-24 relative">
+      {/* Subtle dot pattern background */}
       <div
         className="fixed inset-0 pointer-events-none z-[-1]"
         style={{
-          backgroundImage: "radial-gradient(#af101a 0.5px, transparent 0.5px)",
+          backgroundImage:
+            "radial-gradient(oklch(0.508 0.14 17.4) 0.5px, transparent 0.5px)",
           backgroundSize: "24px 24px",
-          opacity: 0.05,
+          opacity: 0.04,
         }}
       />
 
-      <main className="pt-24 px-6 max-w-2xl mx-auto pb-24">
-        <div className="mb-8">
-          <h1 className="font-headline text-3xl font-extrabold text-on-surface mb-2 tracking-tight">
-            Previous Year Questions
-          </h1>
-          <p className="text-secondary font-medium">
-            Master the patterns from previous examinations with categorized
-            high-yield archives.
-          </p>
+      <main className="pt-24 px-4 sm:px-6 max-w-2xl mx-auto pb-24">
+        {/* ── Hero ── */}
+        <div className="mb-10 flex items-center gap-6">
+          <div className="flex-1 min-w-0">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border-2 border-primary/40 rounded-full px-3 py-1 mb-3">
+              <span
+                className="material-symbols-outlined text-primary text-sm"
+                style={{ fontVariationSettings: "'FILL' 1, 'wght' 700" }}
+              >
+                stars
+              </span>
+              <span className="text-xs font-headline font-extrabold text-primary uppercase tracking-wider">
+                PYQ Archive
+              </span>
+            </div>
+            <h1 className="font-headline text-3xl sm:text-4xl font-extrabold text-foreground mb-2 tracking-tight leading-tight">
+              Previous Year
+              <br />
+              <span className="text-primary">Questions</span>
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+              Master high-yield patterns from previous examinations with
+              categorised essay and note archives.
+            </p>
+          </div>
+          <div className="shrink-0 hidden sm:block">
+            <div className="w-28 h-28 border-2 border-black rounded-2xl overflow-hidden neo-brutal-shadow bg-muted/20">
+              <img
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqBXr998RD5mnqWMpkWEwvDf8Dy2Q_0jfN-TubvVk6VAxntWNvAAy9LjQJPUyndXRd3N4lsfuBy0PKXpEL3VuG9fq_Be5dN0_9D41G08LG2wfz1QpsxY_Zcj_AAvONWmd0GXW9bPDfdCaXQtNd4g--p_buc83OgbDhWmrbOqtJ3bsHvxLgOhaqMcK0iT2CBMsZqu5vtkXOf3SypX2Rz6lRR1zdLQH0wAuvAC6YECsobLnkCZhLSGKHJzzUWiKTjUzMGhZ8NRUhwRLRl"
+                alt="Scales of Justice"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
         </div>
 
+        {/* ── Overall stats strip ── */}
+        <div
+          data-ocid="pyq.stats-strip"
+          className="grid grid-cols-3 gap-3 mb-8"
+        >
+          {[
+            { label: "Essays", ...essayProgress, accent: ACCENTS.essays },
+            {
+              label: "Short Essays",
+              ...shortEssayProgress,
+              accent: ACCENTS.shortEssays,
+            },
+            {
+              label: "Short Notes",
+              ...shortNoteProgress,
+              accent: ACCENTS.shortNotes,
+            },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="bg-card border-2 border-black rounded-xl p-3 text-center neo-brutal-shadow-sm"
+            >
+              <div
+                className={`text-lg font-headline font-extrabold ${s.accent.progressLabel}`}
+              >
+                {s.pct}%
+              </div>
+              <div className="text-xs font-bold text-muted-foreground leading-tight mt-0.5 truncate">
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Section Cards ── */}
         <div className="flex flex-col gap-6">
-          {/* ── ESSAYS ── */}
-          <section
-            data-ocid="pyq.essays.card"
-            className="bg-surface-container-lowest border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          {/* Essays */}
+          <SectionCard
+            id="essays"
+            title="Essays"
+            accent={ACCENTS.essays}
+            progress={essayProgress}
+            expanded={expandedCard === "essays"}
+            onToggle={() => toggleCard("essays")}
           >
-            <button
-              type="button"
-              onClick={() => toggleCard("essays")}
-              className="w-full p-6 text-left group transition-all hover:-translate-y-1 hover:-translate-x-1"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-primary text-white border-2 border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    <span className="material-symbols-outlined text-3xl">
-                      description
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="font-headline text-xl font-bold uppercase tracking-wide">
-                      ESSAYS
-                    </h2>
-                    <p className="text-sm text-secondary font-medium">
-                      Long-form comprehensive answers
-                    </p>
-                  </div>
-                </div>
-                <span className="bg-primary-fixed text-on-primary-fixed font-label text-xs px-3 py-1 rounded-full border border-black font-bold">
-                  HIGH YIELD
-                </span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <span className="text-sm font-headline font-bold text-primary uppercase">
-                    Progress
-                  </span>
-                  <span className="text-sm font-bold">
-                    {essayProgress.done}/{essayProgress.total} Topics Completed
-                  </span>
-                </div>
-                <div className="h-4 w-full bg-surface-container border-2 border-black rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary border-r-2 border-black transition-all"
-                    style={{ width: `${essayProgress.pct}%` }}
-                  />
-                </div>
-              </div>
-              <div className="mt-6 flex items-center justify-end">
-                <div className="flex items-center gap-2 font-headline font-bold text-sm group-hover:text-primary transition-colors">
-                  {expandedCard === "essays" ? "HIDE TOPICS" : "START ARCHIVE"}{" "}
-                  <span className="material-symbols-outlined text-sm">
-                    {expandedCard === "essays"
-                      ? "expand_less"
-                      : "arrow_forward"}
-                  </span>
-                </div>
-              </div>
-            </button>
-            {expandedCard === "essays" && (
-              <div className="border-t-2 border-black px-6 pb-6 pt-4 space-y-6">
-                <ArchiveTopicList
-                  modules={essayModules}
-                  toggleTopic={toggleEssayTopic}
-                  accentClass="bg-primary"
-                  accentBorderClass="border-r border-black"
-                />
-              </div>
-            )}
-          </section>
+            <ArchiveTopicList
+              modules={essayModules}
+              toggleTopic={toggleEssayTopic}
+              accent={ACCENTS.essays}
+            />
+          </SectionCard>
 
-          {/* ── SHORT ESSAYS ── */}
-          <section
-            data-ocid="pyq.short-essays.card"
-            className="bg-surface-container-lowest border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          {/* Short Essays */}
+          <SectionCard
+            id="short-essays"
+            title="Short Essays"
+            accent={ACCENTS.shortEssays}
+            progress={shortEssayProgress}
+            expanded={expandedCard === "short-essays"}
+            onToggle={() => toggleCard("short-essays")}
           >
-            <button
-              type="button"
-              onClick={() => toggleCard("short-essays")}
-              className="w-full p-6 text-left group transition-all hover:-translate-y-1 hover:-translate-x-1"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-tertiary text-white border-2 border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    <span className="material-symbols-outlined text-3xl">
-                      article
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="font-headline text-xl font-bold uppercase tracking-wide">
-                      SHORT ESSAYS
-                    </h2>
-                    <p className="text-sm text-secondary font-medium">
-                      Mid-range technical explanations
-                    </p>
-                  </div>
-                </div>
-                <span className="bg-tertiary-fixed text-on-tertiary-fixed font-label text-xs px-3 py-1 rounded-full border border-black font-bold">
-                  CRITICAL
-                </span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <span className="text-sm font-headline font-bold text-tertiary uppercase">
-                    Progress
-                  </span>
-                  <span className="text-sm font-bold">
-                    {shortEssayProgress.done}/{shortEssayProgress.total} Topics
-                    Completed
-                  </span>
-                </div>
-                <div className="h-4 w-full bg-surface-container border-2 border-black rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-tertiary border-r-2 border-black transition-all"
-                    style={{ width: `${shortEssayProgress.pct}%` }}
-                  />
-                </div>
-              </div>
-              <div className="mt-6 flex items-center justify-end">
-                <div className="flex items-center gap-2 font-headline font-bold text-sm group-hover:text-tertiary transition-colors">
-                  {expandedCard === "short-essays"
-                    ? "HIDE TOPICS"
-                    : "START ARCHIVE"}{" "}
-                  <span className="material-symbols-outlined text-sm">
-                    {expandedCard === "short-essays"
-                      ? "expand_less"
-                      : "arrow_forward"}
-                  </span>
-                </div>
-              </div>
-            </button>
-            {expandedCard === "short-essays" && (
-              <div className="border-t-2 border-black px-6 pb-6 pt-4 space-y-6">
-                <ArchiveTopicList
-                  modules={shortEssayModules}
-                  toggleTopic={toggleShortEssayTopic}
-                  accentClass="bg-tertiary"
-                  accentBorderClass="border-r border-black"
-                />
-              </div>
-            )}
-          </section>
+            <ArchiveTopicList
+              modules={shortEssayModules}
+              toggleTopic={toggleShortEssayTopic}
+              accent={ACCENTS.shortEssays}
+            />
+          </SectionCard>
 
-          {/* ── SHORT NOTES ── */}
-          <section
-            data-ocid="pyq.short-notes.card"
-            className="bg-surface-container-lowest border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          {/* Short Notes */}
+          <SectionCard
+            id="short-notes"
+            title="Short Notes"
+            accent={ACCENTS.shortNotes}
+            progress={shortNoteProgress}
+            expanded={expandedCard === "short-notes"}
+            onToggle={() => toggleCard("short-notes")}
           >
-            <button
-              type="button"
-              onClick={() => toggleCard("short-notes")}
-              className="w-full p-6 text-left group transition-all hover:-translate-y-1 hover:-translate-x-1"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-zinc-900 text-white border-2 border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    <span className="material-symbols-outlined text-3xl">
-                      edit_note
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="font-headline text-xl font-bold uppercase tracking-wide">
-                      SHORT NOTES
-                    </h2>
-                    <p className="text-sm text-secondary font-medium">
-                      Quick definitions and diagrams
-                    </p>
-                  </div>
-                </div>
-                <span className="bg-secondary-fixed text-on-secondary-fixed font-label text-xs px-3 py-1 rounded-full border border-black font-bold">
-                  FREQUENT
-                </span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <span className="text-sm font-headline font-bold text-zinc-900 uppercase">
-                    Progress
-                  </span>
-                  <span className="text-sm font-bold">
-                    {shortNoteProgress.done}/{shortNoteProgress.total} Topics
-                    Completed
-                  </span>
-                </div>
-                <div className="h-4 w-full bg-surface-container border-2 border-black rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-zinc-900 border-r-2 border-black transition-all"
-                    style={{ width: `${shortNoteProgress.pct}%` }}
-                  />
-                </div>
-              </div>
-              <div className="mt-6 flex items-center justify-end">
-                <div className="flex items-center gap-2 font-headline font-bold text-sm group-hover:text-zinc-600 transition-colors">
-                  {expandedCard === "short-notes"
-                    ? "HIDE TOPICS"
-                    : "START ARCHIVE"}{" "}
-                  <span className="material-symbols-outlined text-sm">
-                    {expandedCard === "short-notes"
-                      ? "expand_less"
-                      : "arrow_forward"}
-                  </span>
-                </div>
-              </div>
-            </button>
-            {expandedCard === "short-notes" && (
-              <div className="border-t-2 border-black px-6 pb-6 pt-4 space-y-6">
-                <ArchiveTopicList
-                  modules={shortNoteModules}
-                  toggleTopic={toggleShortNoteTopic}
-                  accentClass="bg-zinc-900"
-                  accentBorderClass="border-r border-black"
-                />
-              </div>
-            )}
-          </section>
+            <ArchiveTopicList
+              modules={shortNoteModules}
+              toggleTopic={toggleShortNoteTopic}
+              accent={ACCENTS.shortNotes}
+            />
+          </SectionCard>
         </div>
 
-        {/* Tip Box */}
-        <div className="mt-12 mb-8 bg-primary/5 border-2 border-black border-dashed rounded-xl p-6 flex gap-4">
-          <span className="material-symbols-outlined text-primary">
+        {/* ── Pro Tip ── */}
+        <div className="mt-12 bg-primary/5 border-2 border-dashed border-primary/40 rounded-xl p-5 flex gap-4 items-start">
+          <span
+            className="material-symbols-outlined text-primary text-2xl shrink-0 mt-0.5"
+            style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
+          >
             lightbulb
           </span>
-          <p className="text-sm font-medium italic">
-            Pro Tip: Focusing on the &ldquo;ESSAYS&rdquo; archive covers 70% of
-            the material required for &ldquo;SHORT ESSAYS&rdquo; as well.
-            Prioritize long-form study for better integration.
+          <p className="text-sm font-medium text-muted-foreground italic leading-relaxed">
+            <span className="font-extrabold text-foreground not-italic">
+              Pro Tip:{" "}
+            </span>
+            Focusing on the{" "}
+            <span className="font-bold text-primary">Essays</span> archive
+            covers ~70% of the material needed for{" "}
+            <span className="font-bold text-secondary">Short Essays</span> too.
+            Prioritise long-form study for deeper integration.
           </p>
         </div>
       </main>

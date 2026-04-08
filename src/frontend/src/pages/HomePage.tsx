@@ -1,10 +1,43 @@
+import type { AdminData } from "@/hooks/useBackendData";
 import type { TabId } from "../App";
 
 interface HomePageProps {
   onNavigate: (tab: TabId) => void;
+  adminData: AdminData;
 }
 
-export default function HomePage({ onNavigate }: HomePageProps) {
+export default function HomePage({ onNavigate, adminData }: HomePageProps) {
+  const totalSubjects = adminData.subjects.length;
+  const totalModules = adminData.modules.length;
+  const totalQuestions = adminData.mcqs.length;
+
+  const stats = [
+    {
+      id: "home.stat.subjects",
+      label: "Total Subjects",
+      value: totalSubjects,
+      icon: "category",
+      color: "bg-[#bee9ff]",
+      iconColor: "text-[#005f7b]",
+    },
+    {
+      id: "home.stat.modules",
+      label: "Total Modules",
+      value: totalModules,
+      icon: "menu_book",
+      color: "bg-[#ffdad6]",
+      iconColor: "text-[#af101a]",
+    },
+    {
+      id: "home.stat.questions",
+      label: "Total Questions",
+      value: totalQuestions,
+      icon: "quiz",
+      color: "bg-[#d5f5d5]",
+      iconColor: "text-[#1a6e1a]",
+    },
+  ];
+
   return (
     <div className="pt-24 pb-32 px-6 max-w-5xl mx-auto min-h-screen flex flex-col justify-center">
       {/* Hero Quote Section */}
@@ -59,12 +92,45 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </span>
         </button>
         <p className="font-label text-sm font-bold text-[#5e5e5e] uppercase tracking-widest">
-          342 Questions Ready Today
+          {adminData.isLoading
+            ? "Loading content…"
+            : totalQuestions > 0
+              ? `${totalQuestions} Question${totalQuestions !== 1 ? "s" : ""} Ready`
+              : "Add questions via Admin to start"}
         </p>
       </div>
 
+      {/* Live Stats Bento */}
+      <div className="mt-16 grid grid-cols-3 gap-4 md:gap-6">
+        {stats.map((stat) => (
+          <div
+            key={stat.id}
+            data-ocid={stat.id}
+            className="bg-white border-2 border-black rounded-2xl p-4 md:p-6 neo-brutal-shadow flex flex-col items-center justify-center text-center gap-2"
+          >
+            <div
+              className={`${stat.color} w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center neo-brutal-shadow-sm`}
+            >
+              <span className={`material-symbols-outlined ${stat.iconColor}`}>
+                {stat.icon}
+              </span>
+            </div>
+            <span className="font-headline text-2xl md:text-4xl font-black text-black leading-none">
+              {adminData.isLoading ? (
+                <span className="text-[#5e5e5e] text-lg">…</span>
+              ) : (
+                stat.value
+              )}
+            </span>
+            <p className="font-label font-bold uppercase tracking-widest text-[10px] md:text-xs text-[#5e5e5e] leading-tight">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
+
       {/* Bento Grid */}
-      <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Performance Analytics — wide */}
         <div
           data-ocid="home.analytics.card"
@@ -80,8 +146,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               Performance Analytics
             </h3>
             <p className="text-[#5e5e5e] text-lg max-w-sm">
-              Deep dive into your mastery across 12 distinct medical modules
-              with real-time feedback.
+              Deep dive into your mastery across{" "}
+              {totalModules > 0 ? totalModules : "your"} distinct medical
+              modules with real-time feedback.
             </p>
           </div>
           <div className="absolute -right-8 -bottom-8 opacity-10 transition-transform group-hover:scale-110 pointer-events-none">
@@ -91,17 +158,33 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
 
-        {/* Average Score */}
+        {/* Stats Summary */}
         <div
           data-ocid="home.score.card"
-          className="bg-[#d32f2f] text-white border-2 border-black rounded-3xl p-8 neo-brutal-shadow flex flex-col items-center justify-center text-center"
+          className="bg-[#d32f2f] text-white border-2 border-black rounded-3xl p-8 neo-brutal-shadow flex flex-col items-center justify-center text-center gap-3"
         >
-          <span className="font-headline text-5xl font-black mb-2">89%</span>
-          <p className="font-label font-bold uppercase tracking-widest text-sm">
-            Average Score
+          <span
+            className="material-symbols-outlined text-4xl"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            library_books
+          </span>
+          <span className="font-headline text-5xl font-black leading-none">
+            {totalSubjects}
+          </span>
+          <p className="font-label font-bold uppercase tracking-widest text-sm opacity-90">
+            {totalSubjects === 1 ? "Subject" : "Subjects"}
           </p>
-          <div className="w-full h-2 bg-black/20 rounded-full mt-6 overflow-hidden">
-            <div className="h-full bg-white w-[89%] border-r-2 border-black" />
+          <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-white border-r-2 border-black transition-all"
+              style={{
+                width:
+                  totalSubjects > 0
+                    ? `${Math.min(100, (totalSubjects / Math.max(totalSubjects, 10)) * 100)}%`
+                    : "0%",
+              }}
+            />
           </div>
         </div>
 
@@ -127,11 +210,11 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </button>
 
-        {/* Past Sessions */}
+        {/* PYQ Practice */}
         <button
           type="button"
-          data-ocid="home.past_sessions.button"
-          onClick={() => onNavigate("modules")}
+          data-ocid="home.pyq.button"
+          onClick={() => onNavigate("pyq")}
           className="bg-white border-2 border-black rounded-3xl p-6 neo-brutal-shadow-sm flex items-center gap-4 hover:bg-[#f3f3f4] transition-colors cursor-pointer text-left"
         >
           <div className="bg-[#ffdad6] w-14 h-14 rounded-2xl border-2 border-black flex items-center justify-center shrink-0">
@@ -139,34 +222,36 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               className="material-symbols-outlined text-[#af101a]"
               style={{ fontVariationSettings: "'FILL' 1" }}
             >
-              history
+              history_edu
             </span>
           </div>
           <div>
             <h4 className="font-headline font-bold text-lg leading-tight">
-              Past Sessions
+              PYQ Practice
             </h4>
-            <p className="text-sm text-[#5e5e5e]">Resume where you left off</p>
+            <p className="text-sm text-[#5e5e5e]">
+              Past year questions archive
+            </p>
           </div>
         </button>
 
-        {/* Global Ranking */}
+        {/* About the App */}
         <button
           type="button"
-          data-ocid="home.ranking.button"
-          onClick={() => onNavigate("modules")}
+          data-ocid="home.about.button"
+          onClick={() => onNavigate("about")}
           className="bg-white border-2 border-black rounded-3xl p-6 neo-brutal-shadow-sm flex items-center gap-4 hover:bg-[#f3f3f4] transition-colors cursor-pointer text-left"
         >
           <div className="bg-[#bee9ff] w-14 h-14 rounded-2xl border-2 border-black flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-[#005f7b]">
-              emoji_events
+              info
             </span>
           </div>
           <div>
             <h4 className="font-headline font-bold text-lg leading-tight">
-              Global Ranking
+              About the App
             </h4>
-            <p className="text-sm text-[#5e5e5e]">See how you stack up</p>
+            <p className="text-sm text-[#5e5e5e]">Meet Dr. Adil</p>
           </div>
         </button>
       </div>

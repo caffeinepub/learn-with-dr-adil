@@ -25,14 +25,23 @@ type Props = Pick<
   "subjects" | "modules" | "mcqs" | "addMCQ" | "updateMCQ" | "deleteMCQ"
 >;
 
-const ANSWER_OPTIONS: Array<MCQ["correctAnswer"]> = ["A", "B", "C", "D"];
+type AnswerLetter = "A" | "B" | "C" | "D";
 
-const ANSWER_COLORS: Record<MCQ["correctAnswer"], string> = {
+const ANSWER_OPTIONS: AnswerLetter[] = ["A", "B", "C", "D"];
+
+const ANSWER_COLORS: Record<AnswerLetter, string> = {
   A: "bg-blue-100 text-blue-800 border-blue-400",
   B: "bg-green-100 text-green-800 border-green-400",
   C: "bg-amber-100 text-amber-800 border-amber-400",
   D: "bg-purple-100 text-purple-800 border-purple-400",
 };
+
+function getAnswerColor(answer: string): string {
+  return (
+    ANSWER_COLORS[answer as AnswerLetter] ??
+    "bg-zinc-100 text-zinc-700 border-zinc-400"
+  );
+}
 
 // ─── MCQ Form Modal ───────────────────────────────────────────────────────────
 function MCQModal({
@@ -57,11 +66,12 @@ function MCQModal({
   const [optionB, setOptionB] = useState(initial?.optionB ?? "");
   const [optionC, setOptionC] = useState(initial?.optionC ?? "");
   const [optionD, setOptionD] = useState(initial?.optionD ?? "");
-  const [correctAnswer, setCorrectAnswer] = useState<MCQ["correctAnswer"]>(
+  const [correctAnswer, setCorrectAnswer] = useState<string>(
     initial?.correctAnswer ?? "A",
   );
   const [explanation, setExplanation] = useState(initial?.explanation ?? "");
   const [validationError, setValidationError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const filteredModules = modules.filter((m) => m.subjectId === subjectId);
 
@@ -94,18 +104,23 @@ function MCQModal({
       return;
     }
     setValidationError("");
-    onSave({
-      subjectId,
-      moduleId,
-      question: question.trim(),
-      optionA: optionA.trim(),
-      optionB: optionB.trim(),
-      optionC: optionC.trim(),
-      optionD: optionD.trim(),
-      correctAnswer,
-      explanation: explanation.trim(),
-    });
-    onClose();
+    setSaving(true);
+    try {
+      onSave({
+        subjectId,
+        moduleId,
+        question: question.trim(),
+        optionA: optionA.trim(),
+        optionB: optionB.trim(),
+        optionC: optionC.trim(),
+        optionD: optionD.trim(),
+        correctAnswer,
+        explanation: explanation.trim(),
+      });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -222,9 +237,7 @@ function MCQModal({
                 return (
                   <div key={letter} className="flex items-center gap-2">
                     <span
-                      className={`w-7 h-7 shrink-0 rounded-lg border-2 border-black flex items-center justify-center font-headline font-black text-xs ${
-                        ANSWER_COLORS[letter as MCQ["correctAnswer"]]
-                      }`}
+                      className={`w-7 h-7 shrink-0 rounded-lg border-2 border-black flex items-center justify-center font-headline font-black text-xs ${ANSWER_COLORS[letter]}`}
                     >
                       {letter}
                     </span>
@@ -251,7 +264,7 @@ function MCQModal({
             </Label>
             <RadioGroup
               value={correctAnswer}
-              onValueChange={(v) => setCorrectAnswer(v as MCQ["correctAnswer"])}
+              onValueChange={setCorrectAnswer}
               className="flex gap-4"
             >
               {ANSWER_OPTIONS.map((opt) => (
@@ -305,7 +318,8 @@ function MCQModal({
             type="button"
             data-ocid="mcq_modal.cancel_button"
             onClick={onClose}
-            className="px-6 py-2 border-2 border-black rounded-full font-headline font-bold text-sm hover:bg-zinc-100 transition-all"
+            disabled={saving}
+            className="px-6 py-2 border-2 border-black rounded-full font-headline font-bold text-sm hover:bg-zinc-100 transition-all disabled:opacity-50"
           >
             Cancel
           </button>
@@ -313,8 +327,14 @@ function MCQModal({
             type="button"
             data-ocid="mcq_modal.save_button"
             onClick={handleSave}
-            className="px-6 py-2 bg-primary text-white border-2 border-black rounded-full font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+            disabled={saving}
+            className="px-6 py-2 bg-primary text-white border-2 border-black rounded-full font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 flex items-center gap-2"
           >
+            {saving && (
+              <span className="material-symbols-outlined text-sm animate-spin">
+                progress_activity
+              </span>
+            )}
             {initial ? "Save Changes" : "Add MCQ"}
           </button>
         </DialogFooter>
@@ -422,9 +442,7 @@ function MCQCard({
               {moduleName}
             </span>
             <span
-              className={`text-[10px] font-black px-2 py-0.5 border rounded-full uppercase tracking-wider ${
-                ANSWER_COLORS[mcq.correctAnswer]
-              }`}
+              className={`text-[10px] font-black px-2 py-0.5 border rounded-full uppercase tracking-wider ${getAnswerColor(mcq.correctAnswer)}`}
             >
               Ans: {mcq.correctAnswer}
             </span>
@@ -454,9 +472,7 @@ function MCQCard({
                       }`}
                     >
                       <span
-                        className={`w-6 h-6 shrink-0 rounded border-2 border-black flex items-center justify-center font-headline font-black text-[10px] ${
-                          ANSWER_COLORS[letter]
-                        }`}
+                        className={`w-6 h-6 shrink-0 rounded border-2 border-black flex items-center justify-center font-headline font-black text-[10px] ${ANSWER_COLORS[letter]}`}
                       >
                         {letter}
                       </span>
@@ -492,6 +508,7 @@ function MCQCard({
             onClick={() => setExpanded((p) => !p)}
             className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors"
             title={expanded ? "Collapse" : "Expand"}
+            aria-label={expanded ? "Collapse question" : "Expand question"}
           >
             <span
               className="material-symbols-outlined text-sm transition-transform duration-200"
@@ -509,6 +526,7 @@ function MCQCard({
             onClick={onEdit}
             className="p-1.5 rounded-lg hover:bg-zinc-100 hover:text-primary transition-colors"
             title="Edit"
+            aria-label="Edit MCQ"
           >
             <span className="material-symbols-outlined text-sm">edit</span>
           </button>
@@ -518,6 +536,7 @@ function MCQCard({
             onClick={onDelete}
             className="p-1.5 rounded-lg hover:bg-red-50 hover:text-error transition-colors"
             title="Delete"
+            aria-label="Delete MCQ"
           >
             <span className="material-symbols-outlined text-sm">delete</span>
           </button>

@@ -515,44 +515,81 @@ export default function MCQPage({
           </div>
         </section>
 
-        {/* Explanation Section — only after answer */}
-        {session.showAnswer && q.explanation && (
-          <section className="bg-surface-container border-2 border-black rounded-xl overflow-hidden mb-6">
-            <div className="bg-black text-white px-6 py-2 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">
-                lightbulb
+        {/* Unified Answer Feedback Box — shown after answer is selected */}
+        {session.showAnswer && (
+          <section
+            data-ocid="mcq.answer_feedback.box"
+            className="border-2 border-black rounded-xl overflow-hidden mb-6 neo-brutal-shadow"
+          >
+            {/* Correct Answer Label */}
+            <div className="bg-tertiary text-white px-5 py-3 flex items-center gap-2">
+              <span
+                className="material-symbols-outlined text-base"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                check_circle
               </span>
-              <span className="font-headline font-bold text-xs uppercase tracking-widest">
-                Expert Explanation
+              <span className="font-headline font-bold text-sm uppercase tracking-widest">
+                Correct Answer
               </span>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="flex items-start gap-4">
-                <img
-                  alt="Dr. Adil portrait"
-                  src="/assets/generated/dr-adil-avatar.dim_200x200.jpg"
-                  className="w-12 h-12 rounded-full border-2 border-black object-cover shrink-0"
-                />
-                <div>
-                  <p className="font-bold text-black mb-1">Dr. Adil's Note:</p>
-                  <p className="text-sm leading-relaxed text-secondary">
-                    {bullets.length > 0 ? explanationIntro : q.explanation}
-                  </p>
+            <div className="bg-white px-5 py-4 border-b-2 border-black">
+              <p className="font-headline font-extrabold text-base text-black">
+                {getOptionLabel(correctAnswer)}. {q.options[correctAnswer]}
+              </p>
+              {userAnswer !== null && userAnswer !== correctAnswer && (
+                <p className="mt-1 text-sm font-label text-[#af101a] flex items-center gap-1">
+                  <span
+                    className="material-symbols-outlined text-sm"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    cancel
+                  </span>
+                  Your answer:{" "}
+                  <span className="font-bold">
+                    {getOptionLabel(userAnswer)}. {q.options[userAnswer]}
+                  </span>
+                </p>
+              )}
+              {userAnswer !== null && userAnswer === correctAnswer && (
+                <p className="mt-1 text-sm font-label text-tertiary flex items-center gap-1">
+                  <span
+                    className="material-symbols-outlined text-sm"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    check_circle
+                  </span>
+                  <span className="font-bold">You answered correctly!</span>
+                </p>
+              )}
+            </div>
+
+            {/* Explanation */}
+            {q.explanation && (
+              <div className="bg-[#f9f9fb] px-5 py-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="material-symbols-outlined text-base text-[#5e5e5e]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    lightbulb
+                  </span>
+                  <span className="font-headline font-bold text-xs uppercase tracking-widest text-[#5e5e5e]">
+                    Explanation
+                  </span>
                 </div>
-              </div>
-              {bullets.length > 0 && (
-                <div className="bg-surface-container-lowest p-4 rounded-lg border border-black/10">
-                  <h4 className="font-headline font-bold text-sm mb-2 text-primary">
-                    Key Learning Point:
-                  </h4>
-                  <ul className="text-sm space-y-2 list-disc pl-4 text-on-surface">
+                <p className="text-sm leading-relaxed text-[#3d3d3d]">
+                  {bullets.length > 0 ? explanationIntro : q.explanation}
+                </p>
+                {bullets.length > 0 && (
+                  <ul className="mt-3 text-sm space-y-1.5 list-disc pl-5 text-[#3d3d3d]">
                     {bullets.map((bullet) => (
                       <li key={bullet}>{bullet}</li>
                     ))}
                   </ul>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </section>
         )}
 

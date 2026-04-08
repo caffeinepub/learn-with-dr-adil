@@ -7,45 +7,62 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface QuestionInput {
+export interface MCQ {
+    id: Id;
+    moduleId: Id;
+    question: string;
     explanation: string;
-    correctAnswer: bigint;
-    questionText: string;
-    moduleCategory: string;
-    options: Array<string>;
+    correctAnswer: string;
+    subjectId: Id;
+    optionA: string;
+    optionB: string;
+    optionC: string;
+    optionD: string;
 }
-export type Time = bigint;
-export interface Question {
-    id: bigint;
-    explanation: string;
-    correctAnswer: bigint;
-    questionText: string;
-    moduleCategory: string;
-    options: Array<string>;
+export interface EssayModule {
+    id: Id;
+    title: string;
+    moduleType: string;
+    topics: Array<EssayTopic>;
 }
-export interface QuizAttempt {
-    score: bigint;
-    totalQuestions: bigint;
-    moduleCategory: string;
-    timestamp: Time;
+export interface EssayTopic {
+    id: Id;
+    title: string;
+}
+export interface Subject {
+    id: Id;
+    icon: string;
+    name: string;
+    color: string;
 }
 export interface Module {
-    id: bigint;
+    id: Id;
+    status: string;
     title: string;
-    content: string;
     description: string;
+    subjectId: Id;
 }
+export type Id = string;
 export interface backendInterface {
-    addModule(title: string, description: string, content: string): Promise<void>;
-    addQuestion(input: QuestionInput): Promise<void>;
-    deleteQuestion(id: bigint): Promise<void>;
-    getModule(moduleId: bigint): Promise<Module>;
+    addEssayModule(adminToken: string, em: EssayModule): Promise<void>;
+    addEssayTopic(adminToken: string, moduleId: string, topic: EssayTopic): Promise<void>;
+    addMCQ(adminToken: string, mcq: MCQ): Promise<void>;
+    addModule(adminToken: string, mod: Module): Promise<void>;
+    addSubject(adminToken: string, subject: Subject): Promise<void>;
+    deleteEssayModule(adminToken: string, id: string): Promise<void>;
+    deleteEssayTopic(adminToken: string, moduleId: string, topicId: string): Promise<void>;
+    deleteMCQ(adminToken: string, id: string): Promise<void>;
+    deleteModule(adminToken: string, id: string): Promise<void>;
+    deleteSubject(adminToken: string, id: string): Promise<void>;
+    getEssayModules(): Promise<Array<EssayModule>>;
+    getEssayModulesByType(moduleType: string): Promise<Array<EssayModule>>;
+    getMCQs(): Promise<Array<MCQ>>;
+    getMCQsBySubject(subjectId: string): Promise<Array<MCQ>>;
     getModules(): Promise<Array<Module>>;
-    getQuestion(questionId: bigint): Promise<Question>;
-    getQuestions(): Promise<Array<Question>>;
-    getQuizAttempts(): Promise<Array<QuizAttempt>>;
-    getTopScores(): Promise<Array<bigint>>;
-    initialize(name: string): Promise<void>;
-    isAdmin(): Promise<boolean>;
-    submitQuiz(score: bigint, totalQuestions: bigint, moduleCategory: string): Promise<void>;
+    getModulesBySubject(subjectId: string): Promise<Array<Module>>;
+    getSubjects(): Promise<Array<Subject>>;
+    updateEssayModule(adminToken: string, em: EssayModule): Promise<void>;
+    updateMCQ(adminToken: string, mcq: MCQ): Promise<void>;
+    updateModule(adminToken: string, mod: Module): Promise<void>;
+    updateSubject(adminToken: string, subject: Subject): Promise<void>;
 }

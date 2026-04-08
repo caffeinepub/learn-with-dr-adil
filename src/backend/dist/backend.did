@@ -1,46 +1,64 @@
-type Time = int;
-type QuizAttempt = 
+type Subject = 
  record {
-   moduleCategory: text;
-   score: nat;
-   timestamp: Time;
-   totalQuestions: nat;
- };
-type QuestionInput = 
- record {
-   correctAnswer: nat;
-   explanation: text;
-   moduleCategory: text;
-   options: vec text;
-   questionText: text;
- };
-type Question = 
- record {
-   correctAnswer: nat;
-   explanation: text;
-   id: nat;
-   moduleCategory: text;
-   options: vec text;
-   questionText: text;
+   color: text;
+   icon: text;
+   id: Id;
+   name: text;
  };
 type Module = 
  record {
-   content: text;
    description: text;
-   id: nat;
+   id: Id;
+   status: text;
+   subjectId: Id;
    title: text;
  };
+type MCQ = 
+ record {
+   correctAnswer: text;
+   explanation: text;
+   id: Id;
+   moduleId: Id;
+   optionA: text;
+   optionB: text;
+   optionC: text;
+   optionD: text;
+   question: text;
+   subjectId: Id;
+ };
+type Id = text;
+type EssayTopic = 
+ record {
+   id: Id;
+   title: text;
+ };
+type EssayModule = 
+ record {
+   id: Id;
+   moduleType: text;
+   title: text;
+   topics: vec EssayTopic;
+ };
 service : {
-  addModule: (title: text, description: text, content: text) -> ();
-  addQuestion: (input: QuestionInput) -> ();
-  deleteQuestion: (id: nat) -> ();
-  getModule: (moduleId: nat) -> (Module);
+  addEssayModule: (adminToken: text, em: EssayModule) -> ();
+  addEssayTopic: (adminToken: text, moduleId: text, topic: EssayTopic) -> ();
+  addMCQ: (adminToken: text, mcq: MCQ) -> ();
+  addModule: (adminToken: text, mod: Module) -> ();
+  addSubject: (adminToken: text, subject: Subject) -> ();
+  deleteEssayModule: (adminToken: text, id: text) -> ();
+  deleteEssayTopic: (adminToken: text, moduleId: text, topicId: text) -> ();
+  deleteMCQ: (adminToken: text, id: text) -> ();
+  deleteModule: (adminToken: text, id: text) -> ();
+  deleteSubject: (adminToken: text, id: text) -> ();
+  getEssayModules: () -> (vec EssayModule) query;
+  getEssayModulesByType: (moduleType: text) -> (vec EssayModule) query;
+  getMCQs: () -> (vec MCQ) query;
+  getMCQsBySubject: (subjectId: text) -> (vec MCQ) query;
   getModules: () -> (vec Module) query;
-  getQuestion: (questionId: nat) -> (Question);
-  getQuestions: () -> (vec Question) query;
-  getQuizAttempts: () -> (vec QuizAttempt) query;
-  getTopScores: () -> (vec nat) query;
-  initialize: (name: text) -> ();
-  isAdmin: () -> (bool);
-  submitQuiz: (score: nat, totalQuestions: nat, moduleCategory: text) -> ();
+  getModulesBySubject: (subjectId: text) -> (vec Module) query;
+  getSubjects: () -> (vec Subject) query;
+  updateEssayModule: (adminToken: text, em: EssayModule) -> ();
+  updateMCQ: (adminToken: text, mcq: MCQ) -> ();
+  updateModule: (adminToken: text, mod: Module) -> ();
+  updateSubject: (adminToken: text, subject: Subject) -> ();
 }

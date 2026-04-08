@@ -1,4 +1,4 @@
-import type { EssayModule } from "@/hooks/useAdminData";
+import type { LocalEssayModule as EssayModule } from "@/hooks/useAdminData";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -32,21 +32,33 @@ export default function EssayManager({
   const [confirmDeleteModule, setConfirmDeleteModule] = useState<string | null>(
     null,
   );
+  const [addingModule, setAddingModule] = useState(false);
+  const [addingTopics, setAddingTopics] = useState<Record<string, boolean>>({});
 
   function handleAddModule() {
     const name = newModuleName.trim();
     if (!name) return;
-    addEssayModule(name);
-    setNewModuleName("");
-    toast.success(`Module "${name}" added — live on PYQ page.`);
+    setAddingModule(true);
+    try {
+      addEssayModule(name);
+      setNewModuleName("");
+      toast.success(`Module "${name}" added — live on PYQ page.`);
+    } finally {
+      setAddingModule(false);
+    }
   }
 
   function handleAddTopic(moduleId: string) {
     const topicTitle = (newTopicInputs[moduleId] ?? "").trim();
     if (!topicTitle) return;
-    addEssayTopic(moduleId, topicTitle);
-    setNewTopicInputs((prev) => ({ ...prev, [moduleId]: "" }));
-    toast.success(`Topic "${topicTitle}" added.`);
+    setAddingTopics((prev) => ({ ...prev, [moduleId]: true }));
+    try {
+      addEssayTopic(moduleId, topicTitle);
+      setNewTopicInputs((prev) => ({ ...prev, [moduleId]: "" }));
+      toast.success(`Topic "${topicTitle}" added.`);
+    } finally {
+      setAddingTopics((prev) => ({ ...prev, [moduleId]: false }));
+    }
   }
 
   return (
@@ -68,6 +80,7 @@ export default function EssayManager({
         {/* Add new module form */}
         <div className="flex items-center gap-2">
           <input
+            data-ocid="essay_manager.new_module.input"
             type="text"
             value={newModuleName}
             onChange={(e) => setNewModuleName(e.target.value)}
@@ -77,16 +90,23 @@ export default function EssayManager({
           />
           <button
             type="button"
+            data-ocid="essay_manager.add_module.button"
             onClick={handleAddModule}
-            disabled={!newModuleName.trim()}
+            disabled={!newModuleName.trim() || addingModule}
             className="bg-primary hover:bg-primary-container text-white px-5 py-2 rounded-full border-2 border-black font-headline font-bold text-sm flex items-center gap-2 shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <span
-              className="material-symbols-outlined text-base"
-              style={{ fontVariationSettings: "'wght' 700" }}
-            >
-              add
-            </span>
+            {addingModule ? (
+              <span className="material-symbols-outlined text-base animate-spin">
+                progress_activity
+              </span>
+            ) : (
+              <span
+                className="material-symbols-outlined text-base"
+                style={{ fontVariationSettings: "'wght' 700" }}
+              >
+                add
+              </span>
+            )}
             Add Module
           </button>
         </div>
@@ -94,7 +114,10 @@ export default function EssayManager({
 
       {/* Empty state */}
       {essayModules.length === 0 && (
-        <div className="border-4 border-dashed border-zinc-200 rounded-2xl p-16 flex flex-col items-center justify-center gap-4">
+        <div
+          data-ocid="essay_manager.empty_state"
+          className="border-4 border-dashed border-zinc-200 rounded-2xl p-16 flex flex-col items-center justify-center gap-4"
+        >
           <div className="w-16 h-16 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
             <span className="material-symbols-outlined text-3xl text-secondary">
               {icon}
@@ -105,7 +128,7 @@ export default function EssayManager({
               No Modules Yet
             </h4>
             <p className="text-zinc-500 font-medium mt-1">
-              Add a module above to get started (e.g. “Cardiology”)
+              Add a module above to get started (e.g. "Cardiology")
             </p>
           </div>
         </div>
@@ -122,6 +145,7 @@ export default function EssayManager({
             return (
               <div
                 key={mod.id}
+                data-ocid={`essay_manager.module.card.${mod.id}`}
                 className="bg-surface-container-lowest border-2 border-black rounded-xl overflow-hidden shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
               >
                 {/* Module header */}
@@ -144,16 +168,23 @@ export default function EssayManager({
                   </div>
                   <button
                     type="button"
+                    data-ocid={`essay_manager.module.delete_button.${mod.id}`}
                     onClick={() =>
                       confirmDeleteModule === mod.id
                         ? (() => {
                             deleteEssayModule(mod.id);
                             toast.success(`Module "${mod.name}" deleted.`);
+                            setConfirmDeleteModule(null);
                           })()
                         : setConfirmDeleteModule(mod.id)
                     }
                     onBlur={() => setConfirmDeleteModule(null)}
                     className="p-1.5 rounded-lg border-2 border-transparent hover:bg-error-container hover:border-black hover:text-error transition-all shrink-0"
+                    aria-label={
+                      confirmDeleteModule === mod.id
+                        ? "Click again to confirm delete"
+                        : `Delete ${mod.name}`
+                    }
                     title={
                       confirmDeleteModule === mod.id
                         ? "Click again to confirm delete"
@@ -206,7 +237,7 @@ export default function EssayManager({
 
                       {/* Topic title */}
                       <span
-                        className={`flex-1 text-sm font-medium font-body transition-all ${
+                        className={`flex-1 text-sm font-medium font-body transition-all min-w-0 break-words ${
                           topic.done
                             ? "line-through text-zinc-400"
                             : "text-on-surface"
@@ -219,8 +250,8 @@ export default function EssayManager({
                       <button
                         type="button"
                         onClick={() => deleteEssayTopic(mod.id, topic.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:text-error transition-all"
-                        aria-label="Delete topic"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:text-error transition-all shrink-0"
+                        aria-label={`Delete topic ${topic.title}`}
                       >
                         <span className="material-symbols-outlined text-sm">
                           close
@@ -233,6 +264,7 @@ export default function EssayManager({
                 {/* Add topic input */}
                 <div className="border-t-2 border-dashed border-zinc-300 p-3 flex items-center gap-2">
                   <input
+                    data-ocid={`essay_manager.add_topic.input.${mod.id}`}
                     type="text"
                     value={newTopicInputs[mod.id] ?? ""}
                     onChange={(e) =>
@@ -249,14 +281,24 @@ export default function EssayManager({
                   />
                   <button
                     type="button"
+                    data-ocid={`essay_manager.add_topic.button.${mod.id}`}
                     onClick={() => handleAddTopic(mod.id)}
-                    disabled={!(newTopicInputs[mod.id] ?? "").trim()}
+                    disabled={
+                      !(newTopicInputs[mod.id] ?? "").trim() ||
+                      addingTopics[mod.id]
+                    }
                     className="bg-primary text-white rounded-lg border-2 border-black p-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-container transition-colors shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]"
                     aria-label="Add topic"
                   >
-                    <span className="material-symbols-outlined text-sm">
-                      add
-                    </span>
+                    {addingTopics[mod.id] ? (
+                      <span className="material-symbols-outlined text-sm animate-spin">
+                        progress_activity
+                      </span>
+                    ) : (
+                      <span className="material-symbols-outlined text-sm">
+                        add
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
