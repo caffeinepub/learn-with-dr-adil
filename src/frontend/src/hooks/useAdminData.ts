@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export interface Subject {
   id: string;
@@ -246,109 +246,200 @@ export function useAdminData() {
   );
 
   // ─── Subject CRUD ────────────────────────────────────────────────────────────
-  function addSubject(data: Omit<Subject, "id">) {
+  const addSubject = useCallback((data: Omit<Subject, "id">) => {
     const id = `s${Date.now()}`;
     setSubjects((prev) => [...prev, { ...data, id }]);
-  }
+  }, []);
 
-  function updateSubject(id: string, data: Partial<Omit<Subject, "id">>) {
-    setSubjects((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...data } : s)),
-    );
-  }
+  const updateSubject = useCallback(
+    (id: string, data: Partial<Omit<Subject, "id">>) => {
+      setSubjects((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...data } : s)),
+      );
+    },
+    [],
+  );
 
-  function deleteSubject(id: string) {
+  const deleteSubject = useCallback((id: string) => {
     setSubjects((prev) => prev.filter((s) => s.id !== id));
     setModules((prev) => prev.filter((m) => m.subjectId !== id));
     setMcqs((prev) => prev.filter((q) => q.subjectId !== id));
-  }
+  }, []);
 
   // ─── Module CRUD ─────────────────────────────────────────────────────────────
-  function addModule(data: Omit<Module, "id">) {
+  const addModule = useCallback((data: Omit<Module, "id">) => {
     const id = `m${Date.now()}`;
     setModules((prev) => [...prev, { ...data, id }]);
-  }
+  }, []);
 
-  function updateModule(id: string, data: Partial<Omit<Module, "id">>) {
-    setModules((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ...data } : m)),
-    );
-  }
+  const updateModule = useCallback(
+    (id: string, data: Partial<Omit<Module, "id">>) => {
+      setModules((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, ...data } : m)),
+      );
+    },
+    [],
+  );
 
-  function deleteModule(id: string) {
+  const deleteModule = useCallback((id: string) => {
     setModules((prev) => prev.filter((m) => m.id !== id));
     setMcqs((prev) => prev.filter((q) => q.moduleId !== id));
-  }
+  }, []);
 
   // ─── MCQ CRUD ────────────────────────────────────────────────────────────────
-  function addMCQ(data: Omit<MCQ, "id">) {
+  const addMCQ = useCallback((data: Omit<MCQ, "id">) => {
     const id = `q${Date.now()}`;
     setMcqs((prev) => [...prev, { ...data, id }]);
-  }
+  }, []);
 
-  function updateMCQ(id: string, data: Partial<Omit<MCQ, "id">>) {
-    setMcqs((prev) => prev.map((q) => (q.id === id ? { ...q, ...data } : q)));
-  }
+  const updateMCQ = useCallback(
+    (id: string, data: Partial<Omit<MCQ, "id">>) => {
+      setMcqs((prev) => prev.map((q) => (q.id === id ? { ...q, ...data } : q)));
+    },
+    [],
+  );
 
-  function deleteMCQ(id: string) {
+  const deleteMCQ = useCallback((id: string) => {
     setMcqs((prev) => prev.filter((q) => q.id !== id));
-  }
+  }, []);
 
-  // ─── Essay Module CRUD ───────────────────────────────────────────────────────
-  function makeEssayModuleCRUD(
-    setter: React.Dispatch<React.SetStateAction<EssayModule[]>>,
-    prefix: string,
-  ) {
-    return {
-      add: (name: string) => {
-        const id = `${prefix}${Date.now()}`;
-        setter((prev) => [...prev, { id, name, topics: [] }]);
-      },
-      delete: (id: string) => {
-        setter((prev) => prev.filter((m) => m.id !== id));
-      },
-      addTopic: (moduleId: string, title: string) => {
-        const topicId = `${prefix}t${Date.now()}`;
-        setter((prev) =>
-          prev.map((m) =>
-            m.id === moduleId
-              ? {
-                  ...m,
-                  topics: [...m.topics, { id: topicId, title, done: false }],
-                }
-              : m,
-          ),
-        );
-      },
-      deleteTopic: (moduleId: string, topicId: string) => {
-        setter((prev) =>
-          prev.map((m) =>
-            m.id === moduleId
-              ? { ...m, topics: m.topics.filter((t) => t.id !== topicId) }
-              : m,
-          ),
-        );
-      },
-      toggleTopic: (moduleId: string, topicId: string) => {
-        setter((prev) =>
-          prev.map((m) =>
-            m.id === moduleId
-              ? {
-                  ...m,
-                  topics: m.topics.map((t) =>
-                    t.id === topicId ? { ...t, done: !t.done } : t,
-                  ),
-                }
-              : m,
-          ),
-        );
-      },
-    };
-  }
+  // ─── Essay Module CRUD (stable callbacks) ────────────────────────────────────
+  const addEssayModule = useCallback((name: string) => {
+    const id = `em${Date.now()}`;
+    setEssayModules((prev) => [...prev, { id, name, topics: [] }]);
+  }, []);
+  const deleteEssayModule = useCallback((id: string) => {
+    setEssayModules((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+  const addEssayTopic = useCallback((moduleId: string, title: string) => {
+    const topicId = `emt${Date.now()}`;
+    setEssayModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? { ...m, topics: [...m.topics, { id: topicId, title, done: false }] }
+          : m,
+      ),
+    );
+  }, []);
+  const deleteEssayTopic = useCallback((moduleId: string, topicId: string) => {
+    setEssayModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? { ...m, topics: m.topics.filter((t) => t.id !== topicId) }
+          : m,
+      ),
+    );
+  }, []);
+  const toggleEssayTopic = useCallback((moduleId: string, topicId: string) => {
+    setEssayModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? {
+              ...m,
+              topics: m.topics.map((t) =>
+                t.id === topicId ? { ...t, done: !t.done } : t,
+              ),
+            }
+          : m,
+      ),
+    );
+  }, []);
 
-  const essayCRUD = makeEssayModuleCRUD(setEssayModules, "em");
-  const shortEssayCRUD = makeEssayModuleCRUD(setShortEssayModules, "se");
-  const shortNoteCRUD = makeEssayModuleCRUD(setShortNoteModules, "sn");
+  // ─── Short Essay Module CRUD (stable callbacks) ───────────────────────────────
+  const addShortEssayModule = useCallback((name: string) => {
+    const id = `se${Date.now()}`;
+    setShortEssayModules((prev) => [...prev, { id, name, topics: [] }]);
+  }, []);
+  const deleteShortEssayModule = useCallback((id: string) => {
+    setShortEssayModules((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+  const addShortEssayTopic = useCallback((moduleId: string, title: string) => {
+    const topicId = `set${Date.now()}`;
+    setShortEssayModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? { ...m, topics: [...m.topics, { id: topicId, title, done: false }] }
+          : m,
+      ),
+    );
+  }, []);
+  const deleteShortEssayTopic = useCallback(
+    (moduleId: string, topicId: string) => {
+      setShortEssayModules((prev) =>
+        prev.map((m) =>
+          m.id === moduleId
+            ? { ...m, topics: m.topics.filter((t) => t.id !== topicId) }
+            : m,
+        ),
+      );
+    },
+    [],
+  );
+  const toggleShortEssayTopic = useCallback(
+    (moduleId: string, topicId: string) => {
+      setShortEssayModules((prev) =>
+        prev.map((m) =>
+          m.id === moduleId
+            ? {
+                ...m,
+                topics: m.topics.map((t) =>
+                  t.id === topicId ? { ...t, done: !t.done } : t,
+                ),
+              }
+            : m,
+        ),
+      );
+    },
+    [],
+  );
+
+  // ─── Short Note Module CRUD (stable callbacks) ────────────────────────────────
+  const addShortNoteModule = useCallback((name: string) => {
+    const id = `sn${Date.now()}`;
+    setShortNoteModules((prev) => [...prev, { id, name, topics: [] }]);
+  }, []);
+  const deleteShortNoteModule = useCallback((id: string) => {
+    setShortNoteModules((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+  const addShortNoteTopic = useCallback((moduleId: string, title: string) => {
+    const topicId = `snt${Date.now()}`;
+    setShortNoteModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? { ...m, topics: [...m.topics, { id: topicId, title, done: false }] }
+          : m,
+      ),
+    );
+  }, []);
+  const deleteShortNoteTopic = useCallback(
+    (moduleId: string, topicId: string) => {
+      setShortNoteModules((prev) =>
+        prev.map((m) =>
+          m.id === moduleId
+            ? { ...m, topics: m.topics.filter((t) => t.id !== topicId) }
+            : m,
+        ),
+      );
+    },
+    [],
+  );
+  const toggleShortNoteTopic = useCallback(
+    (moduleId: string, topicId: string) => {
+      setShortNoteModules((prev) =>
+        prev.map((m) =>
+          m.id === moduleId
+            ? {
+                ...m,
+                topics: m.topics.map((t) =>
+                  t.id === topicId ? { ...t, done: !t.done } : t,
+                ),
+              }
+            : m,
+        ),
+      );
+    },
+    [],
+  );
 
   return {
     subjects,
@@ -367,23 +458,23 @@ export function useAdminData() {
     updateMCQ,
     deleteMCQ,
     // Essays
-    addEssayModule: essayCRUD.add,
-    deleteEssayModule: essayCRUD.delete,
-    addEssayTopic: essayCRUD.addTopic,
-    deleteEssayTopic: essayCRUD.deleteTopic,
-    toggleEssayTopic: essayCRUD.toggleTopic,
+    addEssayModule,
+    deleteEssayModule,
+    addEssayTopic,
+    deleteEssayTopic,
+    toggleEssayTopic,
     // Short Essays
-    addShortEssayModule: shortEssayCRUD.add,
-    deleteShortEssayModule: shortEssayCRUD.delete,
-    addShortEssayTopic: shortEssayCRUD.addTopic,
-    deleteShortEssayTopic: shortEssayCRUD.deleteTopic,
-    toggleShortEssayTopic: shortEssayCRUD.toggleTopic,
+    addShortEssayModule,
+    deleteShortEssayModule,
+    addShortEssayTopic,
+    deleteShortEssayTopic,
+    toggleShortEssayTopic,
     // Short Notes
-    addShortNoteModule: shortNoteCRUD.add,
-    deleteShortNoteModule: shortNoteCRUD.delete,
-    addShortNoteTopic: shortNoteCRUD.addTopic,
-    deleteShortNoteTopic: shortNoteCRUD.deleteTopic,
-    toggleShortNoteTopic: shortNoteCRUD.toggleTopic,
+    addShortNoteModule,
+    deleteShortNoteModule,
+    addShortNoteTopic,
+    deleteShortNoteTopic,
+    toggleShortNoteTopic,
   };
 }
 
