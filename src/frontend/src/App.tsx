@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
-import { useAdminData } from "@/hooks/useAdminData";
+import { useAdminDataStore } from "@/hooks/useAdminData";
 import { useRef, useState } from "react";
 import AboutPage from "./pages/AboutPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -22,7 +22,9 @@ export default function App() {
   // Shared data store — instantiated ONCE and kept stable for the entire app lifetime.
   // All pages (admin + student) read from the same state so changes made in the
   // admin Content Manager are immediately visible on the student-facing Modules page.
-  const adminData = useAdminData();
+  // useAdminDataStore() is called directly here (no Context Provider needed) — it
+  // creates the state once in this component and threads it down as props.
+  const adminData = useAdminDataStore();
 
   // Hidden logo tap trigger refs
   const tapCountRef = useRef(0);
