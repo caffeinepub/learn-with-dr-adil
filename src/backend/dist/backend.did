@@ -1,0 +1,46 @@
+type Time = int;
+type QuizAttempt = 
+ record {
+   moduleCategory: text;
+   score: nat;
+   timestamp: Time;
+   totalQuestions: nat;
+ };
+type QuestionInput = 
+ record {
+   correctAnswer: nat;
+   explanation: text;
+   moduleCategory: text;
+   options: vec text;
+   questionText: text;
+ };
+type Question = 
+ record {
+   correctAnswer: nat;
+   explanation: text;
+   id: nat;
+   moduleCategory: text;
+   options: vec text;
+   questionText: text;
+ };
+type Module = 
+ record {
+   content: text;
+   description: text;
+   id: nat;
+   title: text;
+ };
+service : {
+  addModule: (title: text, description: text, content: text) -> ();
+  addQuestion: (input: QuestionInput) -> ();
+  deleteQuestion: (id: nat) -> ();
+  getModule: (moduleId: nat) -> (Module);
+  getModules: () -> (vec Module) query;
+  getQuestion: (questionId: nat) -> (Question);
+  getQuestions: () -> (vec Question) query;
+  getQuizAttempts: () -> (vec QuizAttempt) query;
+  getTopScores: () -> (vec nat) query;
+  initialize: (name: text) -> ();
+  isAdmin: () -> (bool);
+  submitQuiz: (score: nat, totalQuestions: nat, moduleCategory: text) -> ();
+}

@@ -1,0 +1,148 @@
+import typography from "@tailwindcss/typography";
+import containerQueries from "@tailwindcss/container-queries";
+import animate from "tailwindcss-animate";
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ["class"],
+  content: ["index.html", "src/**/*.{js,ts,jsx,tsx,html,css}"],
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        border: "oklch(var(--border))",
+        input: "oklch(var(--input))",
+        ring: "oklch(var(--ring) / <alpha-value>)",
+        background: "#f9f9f9",
+        foreground: "oklch(var(--foreground))",
+        "on-primary-fixed-variant": "#930010",
+        "surface-container-high": "#e8e8e8",
+        "surface-container-low": "#f3f3f4",
+        "on-secondary-container": "#646464",
+        "secondary-fixed": "#e2e2e2",
+        "primary-fixed": "#ffdad6",
+        "on-error-container": "#93000a",
+        "on-primary-fixed": "#410003",
+        secondary: "#5e5e5e",
+        "surface-variant": "#e2e2e2",
+        "on-surface-variant": "#5b403d",
+        "secondary-container": "#e2e2e2",
+        "inverse-on-surface": "#f0f1f1",
+        "tertiary-container": "#00799c",
+        "on-tertiary-fixed-variant": "#004d65",
+        outline: "#8f6f6c",
+        "on-tertiary-fixed": "#001f2a",
+        "primary-fixed-dim": "#ffb3ac",
+        surface: "#f9f9f9",
+        "surface-bright": "#f9f9f9",
+        "surface-container-highest": "#e2e2e2",
+        "on-tertiary": "#ffffff",
+        "tertiary-fixed": "#bee9ff",
+        "on-background": "#1a1c1c",
+        "inverse-primary": "#ffb3ac",
+        "on-secondary": "#ffffff",
+        "on-primary-container": "#fff2f0",
+        "on-tertiary-container": "#e9f7ff",
+        "on-secondary-fixed": "#1b1b1b",
+        "surface-container": "#eeeeee",
+        "outline-variant": "#e4beba",
+        primary: {
+          DEFAULT: "#af101a",
+          container: "#d32f2f",
+          foreground: "#ffffff",
+        },
+        "surface-tint": "#ba1a20",
+        "surface-container-lowest": "#ffffff",
+        "tertiary-fixed-dim": "#7bd1f8",
+        "secondary-fixed-dim": "#c6c6c6",
+        "inverse-surface": "#2f3131",
+        "on-secondary-fixed-variant": "#474747",
+        tertiary: "#005f7b",
+        "error-container": "#ffdad6",
+        "on-primary": "#ffffff",
+        "surface-dim": "#dadada",
+        "on-error": "#ffffff",
+        "on-surface": "#1a1c1c",
+        error: "#ba1a1a",
+        // Keep shadcn compatibility
+        popover: {
+          DEFAULT: "oklch(var(--popover))",
+          foreground: "oklch(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "oklch(var(--card))",
+          foreground: "oklch(var(--card-foreground))",
+        },
+        muted: {
+          DEFAULT: "oklch(var(--muted) / <alpha-value>)",
+          foreground: "oklch(var(--muted-foreground) / <alpha-value>)",
+        },
+        accent: {
+          DEFAULT: "oklch(var(--accent) / <alpha-value>)",
+          foreground: "oklch(var(--accent-foreground))",
+        },
+        destructive: {
+          DEFAULT: "oklch(var(--destructive) / <alpha-value>)",
+          foreground: "oklch(var(--destructive-foreground))",
+        },
+        chart: {
+          1: "oklch(var(--chart-1))",
+          2: "oklch(var(--chart-2))",
+          3: "oklch(var(--chart-3))",
+          4: "oklch(var(--chart-4))",
+          5: "oklch(var(--chart-5))",
+        },
+        sidebar: {
+          DEFAULT: "oklch(var(--sidebar))",
+          foreground: "oklch(var(--sidebar-foreground))",
+          primary: "oklch(var(--sidebar-primary))",
+          "primary-foreground": "oklch(var(--sidebar-primary-foreground))",
+          accent: "oklch(var(--sidebar-accent))",
+          "accent-foreground": "oklch(var(--sidebar-accent-foreground))",
+          border: "oklch(var(--sidebar-border))",
+          ring: "oklch(var(--sidebar-ring))",
+        },
+      },
+      borderRadius: {
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        full: "9999px",
+      },
+      fontFamily: {
+        headline: ["Plus Jakarta Sans", "sans-serif"],
+        body: ["Be Vietnam Pro", "sans-serif"],
+        label: ["Plus Jakarta Sans", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "sans-serif"],
+      },
+      boxShadow: {
+        xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
+        "neo-brutal": "4px 4px 0px 0px rgba(0,0,0,1)",
+        "neo-brutal-sm": "2px 2px 0px 0px rgba(0,0,0,1)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [typography, containerQueries, animate],
+};
