@@ -414,7 +414,7 @@ export default function MCQPage({
         {/* Question Card */}
         <section
           data-ocid="mcq.question.card"
-          className="bg-surface-container-lowest border-2 border-black rounded-xl p-6 mb-6 neo-brutal-shadow"
+          className="bg-white border-2 border-black rounded-xl p-6 mb-6 neo-brutal-shadow"
         >
           <div className="mb-6">
             <p className="text-lg font-medium leading-relaxed">
@@ -437,7 +437,7 @@ export default function MCQPage({
                       key={`opt-${q.id}-${oi}`}
                       data-ocid={`mcq.option.${oi + 1}`}
                       disabled
-                      className="w-full text-left p-4 rounded-xl border-2 border-black bg-tertiary text-white neo-brutal-shadow-sm flex justify-between items-center cursor-default"
+                      className="w-full text-left p-4 rounded-xl border-2 border-black bg-green-600 text-white neo-brutal-shadow-sm flex justify-between items-center cursor-default"
                     >
                       <div className="flex items-center">
                         <span className="font-headline font-bold mr-4">
@@ -461,7 +461,7 @@ export default function MCQPage({
                       key={`opt-${q.id}-${oi}`}
                       data-ocid={`mcq.option.${oi + 1}`}
                       disabled
-                      className="w-full text-left p-4 rounded-xl border-2 border-black bg-error text-white neo-brutal-shadow-sm flex justify-between items-center cursor-default"
+                      className="w-full text-left p-4 rounded-xl border-2 border-black bg-red-600 text-white neo-brutal-shadow-sm flex justify-between items-center cursor-default"
                     >
                       <div className="flex items-center">
                         <span className="font-headline font-bold mr-4">
@@ -500,7 +500,7 @@ export default function MCQPage({
                   key={`opt-${q.id}-${oi}`}
                   data-ocid={`mcq.option.${oi + 1}`}
                   onClick={() => selectAnswer(oi)}
-                  className="w-full text-left p-4 rounded-xl border-2 border-black bg-white hover:bg-surface-container-low transition-all group flex justify-between items-center"
+                  className="w-full text-left p-4 rounded-xl border-2 border-black bg-white hover:bg-[#f3f3f4] active:bg-[#ebebeb] transition-all group flex justify-between items-center"
                 >
                   <span className="font-headline font-bold mr-4 opacity-50">
                     {getOptionLabel(oi)}
@@ -522,7 +522,7 @@ export default function MCQPage({
             className="border-2 border-black rounded-xl overflow-hidden mb-6 neo-brutal-shadow"
           >
             {/* Correct Answer Label */}
-            <div className="bg-tertiary text-white px-5 py-3 flex items-center gap-2">
+            <div className="bg-green-600 text-white px-5 py-3 flex items-center gap-2">
               <span
                 className="material-symbols-outlined text-base"
                 style={{ fontVariationSettings: "'FILL' 1" }}
@@ -552,7 +552,7 @@ export default function MCQPage({
                 </p>
               )}
               {userAnswer !== null && userAnswer === correctAnswer && (
-                <p className="mt-1 text-sm font-label text-tertiary flex items-center gap-1">
+                <p className="mt-1 text-sm font-label text-green-700 flex items-center gap-1">
                   <span
                     className="material-symbols-outlined text-sm"
                     style={{ fontVariationSettings: "'FILL' 1" }}
@@ -599,7 +599,7 @@ export default function MCQPage({
             type="button"
             data-ocid="mcq.flag.button"
             onClick={() => toast("Question flagged for review.")}
-            className="flex-1 bg-white border-2 border-black text-black py-4 rounded-full font-headline font-extrabold uppercase tracking-widest text-sm transition-all hover:bg-surface-container-low active:translate-x-0.5 active:translate-y-0.5"
+            className="flex-1 bg-white border-2 border-black text-black py-4 rounded-full font-headline font-extrabold uppercase tracking-widest text-sm transition-all hover:bg-[#f3f3f4] active:translate-x-0.5 active:translate-y-0.5"
           >
             Flag Question
           </button>
