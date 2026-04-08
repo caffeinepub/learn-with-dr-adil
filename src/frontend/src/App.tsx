@@ -2,9 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useAdminData } from "@/hooks/useAdminData";
 import { useRef, useState } from "react";
 import AboutPage from "./pages/AboutPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminPage from "./pages/AdminPage";
 import ContentManagerPage from "./pages/ContentManagerPage";
 import HomePage from "./pages/HomePage";
 import MCQPage from "./pages/MCQPage";
@@ -16,15 +14,14 @@ export type TabId = "home" | "mcq" | "modules" | "pyq" | "admin" | "about";
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminView, setAdminView] = useState<"dashboard" | "content">(
-    "dashboard",
-  );
   // Subject filter for MCQ tab — set when "Start Practice" is clicked from a module
   const [mcqSubjectFilter, setMcqSubjectFilter] = useState<string | null>(null);
   // Auto-start flag — when true, MCQPage starts the quiz immediately without user input
   const [mcqAutoStart, setMcqAutoStart] = useState(false);
 
-  // Shared data store — instantiated once here so admin changes are visible everywhere
+  // Shared data store — instantiated ONCE and kept stable for the entire app lifetime.
+  // All pages (admin + student) read from the same state so changes made in the
+  // admin Content Manager are immediately visible on the student-facing Modules page.
   const adminData = useAdminData();
 
   // Hidden logo tap trigger refs
@@ -52,7 +49,6 @@ export default function App() {
   function handleTabChange(tab: TabId) {
     if (tab !== "admin") {
       setIsAdminAuthenticated(false);
-      setAdminView("dashboard");
     }
     // Clear subject filter and autoStart when manually navigating away from MCQ tab
     if (tab !== "mcq") {
@@ -70,6 +66,13 @@ export default function App() {
     setActiveTab("mcq");
   }
 
+  // Called from ContentManagerPage "Back" — logs admin out and navigates to modules
+  // so admin-added subjects are immediately visible.
+  function handleContentManagerBack() {
+    setIsAdminAuthenticated(false);
+    setActiveTab("modules");
+  }
+
   // About — standalone full-screen page
   if (activeTab === "about") {
     return (
@@ -80,27 +83,13 @@ export default function App() {
     );
   }
 
-  // Admin authenticated: show dashboard or content manager (full standalone screens)
+  // Admin authenticated: go directly to ContentManagerPage (no dashboard)
   if (activeTab === "admin" && isAdminAuthenticated) {
-    if (adminView === "content") {
-      return (
-        <>
-          <ContentManagerPage
-            adminData={adminData}
-            onBack={() => setAdminView("dashboard")}
-          />
-          <Toaster />
-        </>
-      );
-    }
     return (
       <>
-        <AdminDashboardPage
-          onNavigateToContent={() => setAdminView("content")}
-          onLogout={() => {
-            setIsAdminAuthenticated(false);
-            handleTabChange("home");
-          }}
+        <ContentManagerPage
+          adminData={adminData}
+          onBack={handleContentManagerBack}
         />
         <Toaster />
       </>
@@ -134,9 +123,7 @@ export default function App() {
       case "pyq":
         return <PYQPage adminData={adminData} />;
       case "admin":
-        return isAdminAuthenticated ? (
-          <AdminPage />
-        ) : (
+        return (
           <AdminLoginPage onSuccess={() => setIsAdminAuthenticated(true)} />
         );
       default:

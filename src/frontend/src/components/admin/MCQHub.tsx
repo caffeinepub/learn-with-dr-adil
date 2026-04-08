@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { AdminData, MCQ } from "@/hooks/useAdminData";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type Props = Pick<
   AdminData,
@@ -722,8 +723,10 @@ export default function MCQHub({
           onSave={(data) => {
             if (mcqModal.editing) {
               updateMCQ(mcqModal.editing.id, data);
+              toast.success("MCQ updated — live in student quiz.");
             } else {
               addMCQ(data);
+              toast.success("MCQ added — live in student quiz.");
             }
           }}
           onClose={() => setMcqModal({ open: false })}
@@ -733,7 +736,10 @@ export default function MCQHub({
       {/* Delete Confirm */}
       <DeleteConfirm
         open={deleteConfirm.open}
-        onConfirm={() => deleteMCQ(deleteConfirm.id)}
+        onConfirm={() => {
+          deleteMCQ(deleteConfirm.id);
+          toast.success("MCQ deleted.");
+        }}
         onClose={() => setDeleteConfirm({ open: false, id: "" })}
       />
     </div>

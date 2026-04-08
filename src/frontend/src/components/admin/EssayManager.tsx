@@ -1,5 +1,6 @@
 import type { EssayModule } from "@/hooks/useAdminData";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface EssayManagerProps {
   title?: string;
@@ -37,6 +38,7 @@ export default function EssayManager({
     if (!name) return;
     addEssayModule(name);
     setNewModuleName("");
+    toast.success(`Module "${name}" added — live on PYQ page.`);
   }
 
   function handleAddTopic(moduleId: string) {
@@ -44,6 +46,7 @@ export default function EssayManager({
     if (!topicTitle) return;
     addEssayTopic(moduleId, topicTitle);
     setNewTopicInputs((prev) => ({ ...prev, [moduleId]: "" }));
+    toast.success(`Topic "${topicTitle}" added.`);
   }
 
   return (
@@ -143,7 +146,10 @@ export default function EssayManager({
                     type="button"
                     onClick={() =>
                       confirmDeleteModule === mod.id
-                        ? deleteEssayModule(mod.id)
+                        ? (() => {
+                            deleteEssayModule(mod.id);
+                            toast.success(`Module "${mod.name}" deleted.`);
+                          })()
                         : setConfirmDeleteModule(mod.id)
                     }
                     onBlur={() => setConfirmDeleteModule(null)}

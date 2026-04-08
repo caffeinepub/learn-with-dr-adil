@@ -9,8 +9,7 @@ type SidebarTab =
   | "mcqs"
   | "essays"
   | "short-essays"
-  | "short-notes"
-  | "analytics";
+  | "short-notes";
 
 interface ContentManagerPageProps {
   adminData: AdminData;
@@ -30,12 +29,16 @@ export default function ContentManagerPage({
     { id: "essays", label: "Essays", icon: "description" },
     { id: "short-essays", label: "Short Essays", icon: "article" },
     { id: "short-notes", label: "Short Notes", icon: "edit_note" },
-    { id: "analytics", label: "Analytics", icon: "analytics" },
   ];
 
   function handleSave() {
+    // Show confirmation immediately — data is already committed to the shared
+    // store via individual modal save buttons. This button just provides a
+    // visual confirmation and navigates back so changes are visible on student pages.
     setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 2000);
+    setTimeout(() => {
+      setSavedToast(false);
+    }, 2000);
   }
 
   return (
@@ -80,7 +83,7 @@ export default function ContentManagerPage({
           <span className="material-symbols-outlined text-sm">
             check_circle
           </span>
-          Changes saved successfully
+          Changes saved — live on student pages now!
         </div>
       )}
 
@@ -216,27 +219,6 @@ export default function ContentManagerPage({
               deleteEssayTopic={adminData.deleteShortNoteTopic}
               toggleEssayTopic={adminData.toggleShortNoteTopic}
             />
-          )}
-
-          {activeTab === "analytics" && (
-            <div
-              data-ocid="content_manager.coming_soon.panel"
-              className="flex flex-col items-center justify-center py-24 gap-6"
-            >
-              <div className="w-24 h-24 rounded-full border-2 border-black bg-surface-container-low flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                <span className="material-symbols-outlined text-4xl text-secondary">
-                  analytics
-                </span>
-              </div>
-              <div className="text-center">
-                <h3 className="font-headline font-extrabold text-2xl text-black">
-                  Coming Soon
-                </h3>
-                <p className="text-secondary font-medium mt-2">
-                  The Analytics section is under construction.
-                </p>
-              </div>
-            </div>
           )}
         </div>
       </main>

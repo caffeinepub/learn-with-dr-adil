@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { AdminData, Module, Subject } from "@/hooks/useAdminData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type Props = Pick<
   AdminData,
@@ -354,8 +355,17 @@ export default function SubjectModuleManager({
   deleteModule,
 }: Props) {
   const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(
-    new Set(["s1"]),
+    new Set(),
   );
+
+  // Auto-expand newly added subjects so their modules are immediately visible
+  useEffect(() => {
+    setExpandedSubjects((prev) => {
+      const next = new Set(prev);
+      for (const s of subjects) next.add(s.id);
+      return next;
+    });
+  }, [subjects]);
 
   // Subject modal state
   const [subjectModal, setSubjectModal] = useState<{
@@ -485,9 +495,10 @@ export default function SubjectModuleManager({
                     type="button"
                     data-ocid={`subject_manager.subject.delete_button.${si + 1}`}
                     onClick={() =>
-                      confirmDelete(subject.name, () =>
-                        deleteSubject(subject.id),
-                      )
+                      confirmDelete(subject.name, () => {
+                        deleteSubject(subject.id);
+                        toast.success(`Subject "${subject.name}" deleted.`);
+                      })
                     }
                     className="p-2 rounded-lg border-2 border-transparent hover:bg-error-container hover:text-error hover:border-black transition-all"
                     title="Delete subject"
@@ -574,7 +585,10 @@ export default function SubjectModuleManager({
                           type="button"
                           data-ocid={`subject_manager.module.delete_button.${mi + 1}`}
                           onClick={() =>
-                            confirmDelete(mod.name, () => deleteModule(mod.id))
+                            confirmDelete(mod.name, () => {
+                              deleteModule(mod.id);
+                              toast.success(`Module "${mod.name}" deleted.`);
+                            })
                           }
                           className="p-1.5 rounded-lg hover:bg-red-50 hover:text-error transition-colors"
                           title="Delete module"
@@ -622,8 +636,14 @@ export default function SubjectModuleManager({
           onSave={(data) => {
             if (subjectModal.editing) {
               updateSubject(subjectModal.editing.id, data);
+              toast.success(
+                `Subject "${data.name}" updated — live on student pages.`,
+              );
             } else {
               addSubject(data);
+              toast.success(
+                `Subject "${data.name}" added — now visible on Modules page.`,
+              );
             }
           }}
           onClose={() => setSubjectModal({ open: false })}
@@ -640,8 +660,14 @@ export default function SubjectModuleManager({
           onSave={(data) => {
             if (moduleModal.editing) {
               updateModule(moduleModal.editing.id, data);
+              toast.success(
+                `Module "${data.name}" updated — live on student pages.`,
+              );
             } else {
               addModule(data);
+              toast.success(
+                `Module "${data.name}" added — now visible on Modules page.`,
+              );
             }
           }}
           onClose={() => setModuleModal({ open: false, subjectId: "" })}
