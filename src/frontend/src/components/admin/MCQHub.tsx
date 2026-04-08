@@ -714,6 +714,7 @@ export default function MCQHub({
       {/* MCQ Modal */}
       {mcqModal.open && (
         <MCQModal
+          key={mcqModal.editing?.id ?? "new-mcq"}
           open={mcqModal.open}
           initial={mcqModal.editing}
           subjects={subjects}

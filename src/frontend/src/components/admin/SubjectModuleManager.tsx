@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -617,6 +616,7 @@ export default function SubjectModuleManager({
       {/* Subject Modal */}
       {subjectModal.open && (
         <SubjectModal
+          key={subjectModal.editing?.id ?? "new-subject"}
           open={subjectModal.open}
           initial={subjectModal.editing}
           onSave={(data) => {
@@ -633,6 +633,7 @@ export default function SubjectModuleManager({
       {/* Module Modal */}
       {moduleModal.open && (
         <ModuleModal
+          key={moduleModal.editing?.id ?? `new-module-${moduleModal.subjectId}`}
           open={moduleModal.open}
           subjectId={moduleModal.subjectId}
           initial={moduleModal.editing}

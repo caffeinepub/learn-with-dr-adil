@@ -1,4 +1,4 @@
-import type { AdminData, Subject } from "@/hooks/useAdminData";
+import type { AdminData } from "@/hooks/useAdminData";
 import { useMemo, useState } from "react";
 
 type ModuleStatus = "Completed" | "In Progress" | "Not Started";
@@ -86,7 +86,7 @@ function SubjectCard({
   mcqCount,
   onClick,
 }: {
-  subject: Subject;
+  subject: AdminData["subjects"][number];
   styleIdx: number;
   moduleCount: number;
   mcqCount: number;
@@ -194,13 +194,21 @@ export default function ModulesPage({
   onStartPractice: (subjectId: string) => void;
 }) {
   const { subjects, modules, mcqs } = adminData;
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [selectedModule, setSelectedModule] = useState<DerivedModule | null>(
+
+  // Store only IDs so that derived objects always come from the latest adminData
+  // This prevents stale subject/module names after admin edits
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(
     null,
   );
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Derive display modules from admin data
+  // Derive live objects from current adminData on every render
+  const selectedSubject = selectedSubjectId
+    ? (subjects.find((s) => s.id === selectedSubjectId) ?? null)
+    : null;
+
+  // Derive display modules from admin data — recalculates when modules/mcqs change
   const derivedModules: DerivedModule[] = useMemo(() => {
     return modules.map((m) => {
       const questionCount = mcqs.filter((q) => q.moduleId === m.id).length;
@@ -219,7 +227,12 @@ export default function ModulesPage({
     });
   }, [modules, mcqs]);
 
-  // Subject groups with counts
+  // Derive the selected module from the derived modules list (always up-to-date)
+  const selectedModule = selectedModuleId
+    ? (derivedModules.find((m) => m.id === selectedModuleId) ?? null)
+    : null;
+
+  // Subject groups with counts — recalculates when subjects/modules/mcqs change
   const subjectGroups = useMemo(() => {
     return subjects.map((subject, sIdx) => ({
       subject,
@@ -231,20 +244,20 @@ export default function ModulesPage({
 
   // Modules for the selected subject (with optional search filter)
   const subjectModules = useMemo(() => {
-    if (!selectedSubject) return [];
+    if (!selectedSubjectId) return [];
     const forSubject = derivedModules.filter(
-      (m) => m.subjectId === selectedSubject.id,
+      (m) => m.subjectId === selectedSubjectId,
     );
     if (!searchQuery.trim()) return forSubject;
     const q = searchQuery.toLowerCase();
     return forSubject.filter((m) => m.title.toLowerCase().includes(q));
-  }, [derivedModules, selectedSubject, searchQuery]);
+  }, [derivedModules, selectedSubjectId, searchQuery]);
 
   const selectedSubjectStyle = useMemo(() => {
-    if (!selectedSubject) return null;
-    const idx = subjects.findIndex((s) => s.id === selectedSubject.id);
+    if (!selectedSubjectId) return null;
+    const idx = subjects.findIndex((s) => s.id === selectedSubjectId);
     return SUBJECT_STYLES[(idx >= 0 ? idx : 0) % SUBJECT_STYLES.length];
-  }, [selectedSubject, subjects]);
+  }, [selectedSubjectId, subjects]);
 
   // ── VIEW 3: Module Detail ───────────────────────────────────────────────────
   if (selectedModule) {
@@ -253,7 +266,7 @@ export default function ModulesPage({
         <button
           type="button"
           data-ocid="modules.back.button"
-          onClick={() => setSelectedModule(null)}
+          onClick={() => setSelectedModuleId(null)}
           className="flex items-center gap-2 font-headline font-bold text-sm uppercase tracking-widest text-secondary hover:text-black transition-colors mb-8 mt-6"
         >
           <span className="material-symbols-outlined text-xl">arrow_back</span>
@@ -328,7 +341,7 @@ export default function ModulesPage({
             type="button"
             data-ocid="modules.subject.back"
             onClick={() => {
-              setSelectedSubject(null);
+              setSelectedSubjectId(null);
               setSearchQuery("");
             }}
             className="flex items-center gap-2 font-headline font-bold text-sm uppercase tracking-widest text-secondary hover:text-black transition-colors mb-6"
@@ -401,7 +414,7 @@ export default function ModulesPage({
                 key={mod.id}
                 mod={mod}
                 ocid={`modules.item.${modIdx + 1}`}
-                onClick={() => setSelectedModule(mod)}
+                onClick={() => setSelectedModuleId(mod.id)}
               />
             ))}
           </div>
@@ -454,7 +467,7 @@ export default function ModulesPage({
               styleIdx={styleIdx}
               moduleCount={moduleCount}
               mcqCount={mcqCount}
-              onClick={() => setSelectedSubject(subject)}
+              onClick={() => setSelectedSubjectId(subject.id)}
             />
           ))}
         </div>

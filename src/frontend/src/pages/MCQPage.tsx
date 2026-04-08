@@ -49,6 +49,27 @@ const ANSWER_LETTER_TO_IDX: Record<string, number> = {
   D: 3,
 };
 
+function buildQuizQuestions(
+  mcqs: AdminData["mcqs"],
+  subjects: AdminData["subjects"],
+  modules: AdminData["modules"],
+): QuizQuestion[] {
+  return mcqs.map((q) => {
+    const subject = subjects.find((s) => s.id === q.subjectId);
+    const module = modules.find((m) => m.id === q.moduleId);
+    return {
+      id: q.id,
+      questionText: q.question,
+      options: [q.optionA, q.optionB, q.optionC, q.optionD],
+      correctAnswer: ANSWER_LETTER_TO_IDX[q.correctAnswer] ?? 0,
+      explanation: q.explanation,
+      moduleCategory: module?.name ?? subject?.name ?? "General",
+      subjectId: q.subjectId,
+      moduleId: q.moduleId,
+    };
+  });
+}
+
 export default function MCQPage({
   adminData,
   subjectFilter,
@@ -64,37 +85,19 @@ export default function MCQPage({
 }) {
   const { mcqs, subjects, modules } = adminData;
 
-  // Keep a ref to the latest mcqs so the auto-start effect always reads fresh data
-  const mcqsRef = useRef(mcqs);
-  const subjectsRef = useRef(subjects);
-  const modulesRef = useRef(modules);
-  mcqsRef.current = mcqs;
-  subjectsRef.current = subjects;
-  modulesRef.current = modules;
-
   // Derived questions for display (question count, prompt state, etc.)
-  const questions: QuizQuestion[] = mcqs.map((q) => {
-    const subject = subjects.find((s) => s.id === q.subjectId);
-    const module = modules.find((m) => m.id === q.moduleId);
-    return {
-      id: q.id,
-      questionText: q.question,
-      options: [q.optionA, q.optionB, q.optionC, q.optionD],
-      correctAnswer: ANSWER_LETTER_TO_IDX[q.correctAnswer] ?? 0,
-      explanation: q.explanation,
-      moduleCategory: module?.name ?? subject?.name ?? "General",
-      subjectId: q.subjectId,
-      moduleId: q.moduleId,
-    };
-  });
+  // Computed directly from props — always fresh, no stale memo
+  const allQuestions = buildQuizQuestions(mcqs, subjects, modules);
 
   const [quizState, setQuizState] = useState<QuizState | null>(null);
   const [session, setSession] = useState<QuizSession | null>(null);
   const [timerSeconds, setTimerSeconds] = useState(600);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const questionIndexRef = useRef(0);
-  // Track whether auto-start has already been triggered for this subjectFilter
-  const autoStartedRef = useRef<string | null>(null);
+
+  // Track the last subjectFilter we auto-started for, so we don't re-trigger
+  // on every render — but DO re-trigger if subjectFilter changes to a new value
+  const autoStartedForRef = useRef<string | null>(null);
 
   // Derive the subject name for the active filter banner
   const activeSubjectName = subjectFilter
@@ -115,33 +118,21 @@ export default function MCQPage({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizState, currentQuestionIndex]);
 
   // Auto-start quiz when subjectFilter is set and autoStart flag is true.
-  // Uses refs so it always reads the LATEST mcqs even if data just changed.
+  // Re-triggers whenever subjectFilter changes to a different subject.
   useEffect(() => {
     if (!autoStart || !subjectFilter) return;
-    // Only trigger once per subjectFilter value to avoid restarting on re-renders
-    if (autoStartedRef.current === subjectFilter) return;
-    autoStartedRef.current = subjectFilter;
+    // Only trigger once per unique subjectFilter value
+    if (autoStartedForRef.current === subjectFilter) return;
+    autoStartedForRef.current = subjectFilter;
 
-    // Build questions from refs (always latest data, no stale closure)
-    const latestQuestions = mcqsRef.current.map((q) => {
-      const subject = subjectsRef.current.find((s) => s.id === q.subjectId);
-      const module = modulesRef.current.find((m) => m.id === q.moduleId);
-      return {
-        id: q.id,
-        questionText: q.question,
-        options: [q.optionA, q.optionB, q.optionC, q.optionD],
-        correctAnswer: ANSWER_LETTER_TO_IDX[q.correctAnswer] ?? 0,
-        explanation: q.explanation,
-        moduleCategory: module?.name ?? subject?.name ?? "General",
-        subjectId: q.subjectId,
-        moduleId: q.moduleId,
-      };
-    });
-    const qs = latestQuestions.filter((q) => q.subjectId === subjectFilter);
+    // Build questions from the current adminData (passed as prop, always fresh)
+    const qs = buildQuizQuestions(mcqs, subjects, modules).filter(
+      (q) => q.subjectId === subjectFilter,
+    );
+
     if (qs.length === 0) {
       toast.error("No questions available for this subject yet.");
       return;
@@ -153,8 +144,16 @@ export default function MCQPage({
       answers: new Array(qs.length).fill(null),
       showAnswer: false,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart, subjectFilter]);
+  }, [autoStart, subjectFilter, mcqs, subjects, modules]);
+
+  // When subjectFilter is cleared (user navigates away), reset the auto-start tracker
+  useEffect(() => {
+    if (!subjectFilter) {
+      autoStartedForRef.current = null;
+      setQuizState(null);
+      setSession(null);
+    }
+  }, [subjectFilter]);
 
   function selectAnswer(answerIdx: number) {
     if (!session || session.showAnswer) return;
@@ -191,8 +190,8 @@ export default function MCQPage({
           <div>
             <h2 className="font-headline text-4xl font-extrabold">MCQ Bank</h2>
             <p className="text-[#5e5e5e] mt-1">
-              {questions.length} question{questions.length !== 1 ? "s" : ""}{" "}
-              available
+              {allQuestions.length} question
+              {allQuestions.length !== 1 ? "s" : ""} available
             </p>
           </div>
         </div>
