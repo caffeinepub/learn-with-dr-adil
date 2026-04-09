@@ -83,4 +83,16 @@ export interface AdminData {
   addShortNoteTopic: (moduleId: string, title: string) => void;
   deleteShortNoteTopic: (moduleId: string, topicId: string) => void;
   toggleShortNoteTopic: (moduleId: string, topicId: string) => void;
+
+  updateEssayTopicTitle: (
+    moduleId: string,
+    topicId: string,
+    newTitle: string,
+    moduleType: string,
+  ) => void;
+  reorderEssayTopics: (
+    moduleId: string,
+    topicIds: string[],
+    moduleType: string,
+  ) => void;
 }

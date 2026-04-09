@@ -143,7 +143,9 @@ export interface backendInterface {
     getModules(): Promise<Array<Module>>;
     getModulesBySubject(subjectId: string): Promise<Array<Module>>;
     getSubjects(): Promise<Array<Subject>>;
+    reorderEssayTopics(adminToken: string, moduleId: string, topicIds: Array<string>): Promise<void>;
     updateEssayModule(adminToken: string, em: EssayModule): Promise<void>;
+    updateEssayTopicTitle(adminToken: string, moduleId: string, topicId: string, newTitle: string): Promise<void>;
     updateMCQ(adminToken: string, mcq: MCQ): Promise<void>;
     updateModule(adminToken: string, mod: Module): Promise<void>;
     updateSubject(adminToken: string, subject: Subject): Promise<void>;
@@ -388,6 +390,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async reorderEssayTopics(arg0: string, arg1: string, arg2: Array<string>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.reorderEssayTopics(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.reorderEssayTopics(arg0, arg1, arg2);
+            return result;
+        }
+    }
     async updateEssayModule(arg0: string, arg1: EssayModule): Promise<void> {
         if (this.processError) {
             try {
@@ -399,6 +415,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateEssayModule(arg0, arg1);
+            return result;
+        }
+    }
+    async updateEssayTopicTitle(arg0: string, arg1: string, arg2: string, arg3: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateEssayTopicTitle(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateEssayTopicTitle(arg0, arg1, arg2, arg3);
             return result;
         }
     }

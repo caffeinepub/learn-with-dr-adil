@@ -8,6 +8,17 @@
  *
  * PYQ toggle state (checkboxes) is local-only — it does not need backend
  * persistence and lives in the App-level state passed via adminData.
+ *
+ * Key reliability guarantees:
+ * - refetchOnMount: 'always' — every time a component mounts it re-fetches,
+ *   so navigating from admin back to Modules always gets fresh data.
+ * - refetchInterval: 3000 — polling every 3 s as a safety net so even if
+ *   invalidation fires while ModulesPage is unmounted, data catches up quickly.
+ * - Cross-invalidation: addSubject/updateSubject/deleteSubject also invalidate
+ *   modules; addModule/updateModule/deleteModule also invalidate subjects.
+ *   This keeps counts and lists in sync on both admin and student pages.
+ * - invalidateQueries uses exact: false (default) so ["subjects"] matches any
+ *   query whose key starts with ["subjects"].
  */
 
 import { useActor } from "@caffeineai/core-infrastructure";
@@ -33,6 +44,10 @@ const QK = {
   shortNotes: ["shortNotes"] as const,
 };
 
+// Polling interval (ms) — safety net so data catches up even when invalidation
+// fires while the consuming component is unmounted.
+const POLL_INTERVAL = 3000;
+
 // ── Helper: adapt backend EssayModule[] to LocalEssayModule[] ────────────────
 function adaptEssayModules(
   backendModules: EssayModule[],
@@ -54,30 +69,54 @@ function genId(prefix: string): string {
   return `${prefix}${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
 }
 
+// ── Shared invalidation helper ────────────────────────────────────────────────
+// Invalidates both subjects AND modules together so counts stay in sync and
+// ModulesPage always re-renders with fresh data after any subject/module write.
+function invalidateSubjectsAndModules(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: QK.subjects });
+  qc.invalidateQueries({ queryKey: QK.modules });
+}
+
 // ── Public hook ──────────────────────────────────────────────────────────────
 export function useBackendData(): AdminData {
   const { actor, isFetching: actorLoading } = useActor(createActor);
   const qc = useQueryClient();
 
+  const queryEnabled = !!actor && !actorLoading;
+
   // ── Read queries ────────────────────────────────────────────────────────────
+  // refetchOnMount: 'always' — re-fetch every time any component subscribes,
+  // including when navigating back from the admin panel to ModulesPage.
+  // refetchInterval — poll so data catches up even when invalidation fires
+  // while the component is unmounted (e.g. admin panel is open).
+
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery<
     Subject[]
   >({
     queryKey: QK.subjects,
     queryFn: async () => (actor ? actor.getSubjects() : []),
-    enabled: !!actor && !actorLoading,
+    enabled: queryEnabled,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 
   const { data: modules = [], isLoading: modulesLoading } = useQuery<Module[]>({
     queryKey: QK.modules,
     queryFn: async () => (actor ? actor.getModules() : []),
-    enabled: !!actor && !actorLoading,
+    enabled: queryEnabled,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 
   const { data: mcqs = [], isLoading: mcqsLoading } = useQuery<MCQ[]>({
     queryKey: QK.mcqs,
     queryFn: async () => (actor ? actor.getMCQs() : []),
-    enabled: !!actor && !actorLoading,
+    enabled: queryEnabled,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 
   const { data: essayBackend = [], isLoading: essaysLoading } = useQuery<
@@ -85,7 +124,10 @@ export function useBackendData(): AdminData {
   >({
     queryKey: QK.essays,
     queryFn: async () => (actor ? actor.getEssayModulesByType("essay") : []),
-    enabled: !!actor && !actorLoading,
+    enabled: queryEnabled,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 
   const { data: shortEssayBackend = [], isLoading: shortEssaysLoading } =
@@ -93,7 +135,10 @@ export function useBackendData(): AdminData {
       queryKey: QK.shortEssays,
       queryFn: async () =>
         actor ? actor.getEssayModulesByType("shortEssay") : [],
-      enabled: !!actor && !actorLoading,
+      enabled: queryEnabled,
+      refetchOnMount: "always",
+      refetchInterval: POLL_INTERVAL,
+      staleTime: 0,
     });
 
   const { data: shortNoteBackend = [], isLoading: shortNotesLoading } =
@@ -101,7 +146,10 @@ export function useBackendData(): AdminData {
       queryKey: QK.shortNotes,
       queryFn: async () =>
         actor ? actor.getEssayModulesByType("shortNote") : [],
-      enabled: !!actor && !actorLoading,
+      enabled: queryEnabled,
+      refetchOnMount: "always",
+      refetchInterval: POLL_INTERVAL,
+      staleTime: 0,
     });
 
   // ── Local toggle state for PYQ checkboxes (not persisted) ──────────────────
@@ -127,12 +175,15 @@ export function useBackendData(): AdminData {
   );
 
   // ── Subject mutations ───────────────────────────────────────────────────────
+  // Always invalidate both subjects AND modules so ModulesPage module counts
+  // stay accurate and the student page re-renders immediately after admin saves.
+
   const addSubjectMut = useMutation({
     mutationFn: async (subject: Subject) => {
       if (!actor) return;
       await actor.addSubject(ADMIN_TOKEN, subject);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.subjects }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 
   const updateSubjectMut = useMutation({
@@ -140,7 +191,7 @@ export function useBackendData(): AdminData {
       if (!actor) return;
       await actor.updateSubject(ADMIN_TOKEN, subject);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.subjects }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 
   const deleteSubjectMut = useMutation({
@@ -149,19 +200,20 @@ export function useBackendData(): AdminData {
       await actor.deleteSubject(ADMIN_TOKEN, id);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.subjects });
-      qc.invalidateQueries({ queryKey: QK.modules });
+      invalidateSubjectsAndModules(qc);
       qc.invalidateQueries({ queryKey: QK.mcqs });
     },
   });
 
   // ── Module mutations ────────────────────────────────────────────────────────
+  // Always invalidate both modules AND subjects so subject card counts update.
+
   const addModuleMut = useMutation({
     mutationFn: async (mod: Module) => {
       if (!actor) return;
       await actor.addModule(ADMIN_TOKEN, mod);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.modules }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 
   const updateModuleMut = useMutation({
@@ -169,7 +221,7 @@ export function useBackendData(): AdminData {
       if (!actor) return;
       await actor.updateModule(ADMIN_TOKEN, mod);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.modules }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 
   const deleteModuleMut = useMutation({
@@ -178,7 +230,7 @@ export function useBackendData(): AdminData {
       await actor.deleteModule(ADMIN_TOKEN, id);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.modules });
+      invalidateSubjectsAndModules(qc);
       qc.invalidateQueries({ queryKey: QK.mcqs });
     },
   });
@@ -273,6 +325,103 @@ export function useBackendData(): AdminData {
       else if (moduleType === "shortEssay")
         qc.invalidateQueries({ queryKey: QK.shortEssays });
       else qc.invalidateQueries({ queryKey: QK.shortNotes });
+    },
+  });
+
+  // Helper: resolve query key from moduleType string
+  function resolveQueryKey(
+    moduleType: string,
+  ): readonly ["essays"] | readonly ["shortEssays"] | readonly ["shortNotes"] {
+    if (moduleType === "essay") return QK.essays;
+    if (moduleType === "shortEssay") return QK.shortEssays;
+    return QK.shortNotes;
+  }
+
+  const updateEssayTopicTitleMut = useMutation({
+    mutationFn: async ({
+      moduleId,
+      topicId,
+      newTitle,
+    }: {
+      moduleId: string;
+      topicId: string;
+      newTitle: string;
+      moduleType: string;
+    }) => {
+      if (!actor) return;
+      await actor.updateEssayTopicTitle(
+        ADMIN_TOKEN,
+        moduleId,
+        topicId,
+        newTitle,
+      );
+    },
+    // Optimistic update: rename the topic in the cache immediately so the UI
+    // doesn't wait for the refetch to show the new title.
+    onMutate: async ({ moduleId, topicId, newTitle, moduleType }) => {
+      const key = resolveQueryKey(moduleType);
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<EssayModule[]>(key);
+      qc.setQueryData<EssayModule[]>(key, (old = []) =>
+        old.map((em) =>
+          em.id === moduleId
+            ? {
+                ...em,
+                topics: em.topics.map((t) =>
+                  t.id === topicId ? { ...t, title: newTitle } : t,
+                ),
+              }
+            : em,
+        ),
+      );
+      return { previous, key };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous !== undefined) qc.setQueryData(ctx.key, ctx.previous);
+    },
+    onSettled: (_data, _err, { moduleType }) => {
+      qc.invalidateQueries({ queryKey: resolveQueryKey(moduleType) });
+    },
+  });
+
+  const reorderEssayTopicsMut = useMutation({
+    mutationFn: async ({
+      moduleId,
+      topicIds,
+    }: {
+      moduleId: string;
+      topicIds: string[];
+      moduleType: string;
+    }) => {
+      if (!actor) return;
+      await actor.reorderEssayTopics(ADMIN_TOKEN, moduleId, topicIds);
+    },
+    // Optimistic update: reorder topics in the cache immediately so arrow
+    // clicks feel instant without waiting for the 3-second poll cycle.
+    onMutate: async ({ moduleId, topicIds, moduleType }) => {
+      const key = resolveQueryKey(moduleType);
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<EssayModule[]>(key);
+      qc.setQueryData<EssayModule[]>(key, (old = []) =>
+        old.map((em) => {
+          if (em.id !== moduleId) return em;
+          // Reorder topics array to match the requested topicIds order
+          const topicMap = new Map(em.topics.map((t) => [t.id, t]));
+          const reordered = topicIds
+            .map((id) => topicMap.get(id))
+            .filter((t): t is (typeof em.topics)[number] => t !== undefined);
+          // Append any topics not in topicIds at the end (safety fallback)
+          const remaining = em.topics.filter((t) => !topicIds.includes(t.id));
+          return { ...em, topics: [...reordered, ...remaining] };
+        }),
+      );
+      return { previous, key };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous !== undefined) qc.setQueryData(ctx.key, ctx.previous);
+    },
+    onSettled: (_data, _err, { moduleType }) => {
+      qc.invalidateQueries({ queryKey: resolveQueryKey(moduleType) });
     },
   });
 
@@ -537,6 +686,30 @@ export function useBackendData(): AdminData {
     [],
   );
 
+  const updateEssayTopicTitle = useCallback(
+    (
+      moduleId: string,
+      topicId: string,
+      newTitle: string,
+      moduleType: string,
+    ) => {
+      updateEssayTopicTitleMut.mutate({
+        moduleId,
+        topicId,
+        newTitle,
+        moduleType,
+      });
+    },
+    [updateEssayTopicTitleMut],
+  );
+
+  const reorderEssayTopics = useCallback(
+    (moduleId: string, topicIds: string[], moduleType: string) => {
+      reorderEssayTopicsMut.mutate({ moduleId, topicIds, moduleType });
+    },
+    [reorderEssayTopicsMut],
+  );
+
   const isLoading =
     actorLoading ||
     subjectsLoading ||
@@ -591,6 +764,9 @@ export function useBackendData(): AdminData {
     addShortNoteTopic,
     deleteShortNoteTopic,
     toggleShortNoteTopic,
+
+    updateEssayTopicTitle,
+    reorderEssayTopics,
   };
 }
 
@@ -602,6 +778,9 @@ export function useSubjects() {
     queryKey: QK.subjects,
     queryFn: async () => (actor ? actor.getSubjects() : []),
     enabled: !!actor && !isFetching,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 }
 
@@ -611,6 +790,9 @@ export function useModules() {
     queryKey: QK.modules,
     queryFn: async () => (actor ? actor.getModules() : []),
     enabled: !!actor && !isFetching,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 }
 
@@ -620,6 +802,9 @@ export function useMCQs() {
     queryKey: QK.mcqs,
     queryFn: async () => (actor ? actor.getMCQs() : []),
     enabled: !!actor && !isFetching,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 }
 
@@ -635,6 +820,9 @@ export function useEssayModules(type: string) {
     ],
     queryFn: async () => (actor ? actor.getEssayModulesByType(type) : []),
     enabled: !!actor && !isFetching,
+    refetchOnMount: "always",
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 0,
   });
 }
 
@@ -646,7 +834,7 @@ export function useAddSubject() {
       if (!actor) return;
       await actor.addSubject(ADMIN_TOKEN, subject);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.subjects }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 }
 
@@ -658,7 +846,7 @@ export function useUpdateSubject() {
       if (!actor) return;
       await actor.updateSubject(ADMIN_TOKEN, subject);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.subjects }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 }
 
@@ -671,8 +859,7 @@ export function useDeleteSubject() {
       await actor.deleteSubject(ADMIN_TOKEN, id);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.subjects });
-      qc.invalidateQueries({ queryKey: QK.modules });
+      invalidateSubjectsAndModules(qc);
       qc.invalidateQueries({ queryKey: QK.mcqs });
     },
   });
@@ -686,7 +873,7 @@ export function useAddModule() {
       if (!actor) return;
       await actor.addModule(ADMIN_TOKEN, mod);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.modules }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 }
 
@@ -698,7 +885,7 @@ export function useUpdateModule() {
       if (!actor) return;
       await actor.updateModule(ADMIN_TOKEN, mod);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK.modules }),
+    onSuccess: () => invalidateSubjectsAndModules(qc),
   });
 }
 
@@ -711,7 +898,7 @@ export function useDeleteModule() {
       await actor.deleteModule(ADMIN_TOKEN, id);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.modules });
+      invalidateSubjectsAndModules(qc);
       qc.invalidateQueries({ queryKey: QK.mcqs });
     },
   });

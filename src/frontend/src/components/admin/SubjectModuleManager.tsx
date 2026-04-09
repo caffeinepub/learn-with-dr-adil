@@ -361,7 +361,7 @@ function DeleteConfirm({
               onConfirm();
               onClose();
             }}
-            className="px-6 py-2 bg-error text-white border-2 border-black rounded-full font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+            className="px-6 py-2 bg-red-600 text-white border-2 border-black rounded-full font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
           >
             Delete
           </button>
@@ -481,10 +481,10 @@ export default function SubjectModuleManager({
             <div
               key={subject.id}
               data-ocid={`subject_manager.subject.item.${si + 1}`}
-              className="bg-surface-container-lowest border-2 border-black rounded-xl overflow-hidden shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+              className="bg-white border-2 border-black rounded-xl overflow-hidden shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
             >
               {/* Subject header */}
-              <div className="p-5 flex items-center justify-between bg-surface-container-low border-b-2 border-black gap-4">
+              <div className="p-5 flex items-center justify-between bg-[#f3f3f4] border-b-2 border-black gap-4">
                 <div className="flex items-center gap-4 min-w-0">
                   <div
                     className={`w-12 h-12 shrink-0 rounded-xl border-2 border-black flex items-center justify-center ${
@@ -529,7 +529,7 @@ export default function SubjectModuleManager({
                         toast.success(`Subject "${subject.name}" deleted.`);
                       })
                     }
-                    className="p-2 rounded-lg border-2 border-transparent hover:bg-error-container hover:text-error hover:border-black transition-all"
+                    className="p-2 rounded-lg border-2 border-transparent hover:bg-red-50 hover:text-red-600 hover:border-black transition-all"
                     title="Delete subject"
                     aria-label={`Delete ${subject.name}`}
                   >
@@ -576,7 +576,7 @@ export default function SubjectModuleManager({
                       data-ocid={`subject_manager.module.item.${mi + 1}`}
                       className="flex items-start gap-3 p-4 bg-white border-2 border-black rounded-xl group hover:border-primary transition-colors"
                     >
-                      <div className="w-10 h-10 shrink-0 rounded-lg border-2 border-black bg-surface-container-low flex items-center justify-center">
+                      <div className="w-10 h-10 shrink-0 rounded-lg border-2 border-black bg-[#f3f3f4] flex items-center justify-center">
                         <span className="material-symbols-outlined text-base">
                           {mod.icon ?? "book"}
                         </span>
@@ -626,7 +626,7 @@ export default function SubjectModuleManager({
                               toast.success(`Module "${mod.name}" deleted.`);
                             })
                           }
-                          className="p-1.5 rounded-lg hover:bg-red-50 hover:text-error transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
                           title="Delete module"
                           aria-label={`Delete ${mod.name}`}
                         >

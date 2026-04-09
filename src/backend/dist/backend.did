@@ -57,7 +57,11 @@ service : {
   getModules: () -> (vec Module) query;
   getModulesBySubject: (subjectId: text) -> (vec Module) query;
   getSubjects: () -> (vec Subject) query;
+  reorderEssayTopics: (adminToken: text, moduleId: text, topicIds:
+   vec text) -> ();
   updateEssayModule: (adminToken: text, em: EssayModule) -> ();
+  updateEssayTopicTitle: (adminToken: text, moduleId: text, topicId: 
+   text, newTitle: text) -> ();
   updateMCQ: (adminToken: text, mcq: MCQ) -> ();
   updateModule: (adminToken: text, mod: Module) -> ();
   updateSubject: (adminToken: text, subject: Subject) -> ();

@@ -61,7 +61,9 @@ export interface backendInterface {
     getModules(): Promise<Array<Module>>;
     getModulesBySubject(subjectId: string): Promise<Array<Module>>;
     getSubjects(): Promise<Array<Subject>>;
+    reorderEssayTopics(adminToken: string, moduleId: string, topicIds: Array<string>): Promise<void>;
     updateEssayModule(adminToken: string, em: EssayModule): Promise<void>;
+    updateEssayTopicTitle(adminToken: string, moduleId: string, topicId: string, newTitle: string): Promise<void>;
     updateMCQ(adminToken: string, mcq: MCQ): Promise<void>;
     updateModule(adminToken: string, mod: Module): Promise<void>;
     updateSubject(adminToken: string, subject: Subject): Promise<void>;

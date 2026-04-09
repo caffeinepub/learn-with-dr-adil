@@ -156,12 +156,15 @@ export default function ContentManagerPage({
               title="Essay Manager"
               description="Organize long-form essay topics by module. Add modules and tick topics when completed."
               icon="description"
+              moduleType="essay"
               essayModules={adminData.essayModules}
               addEssayModule={adminData.addEssayModule}
               deleteEssayModule={adminData.deleteEssayModule}
               addEssayTopic={adminData.addEssayTopic}
               deleteEssayTopic={adminData.deleteEssayTopic}
               toggleEssayTopic={adminData.toggleEssayTopic}
+              updateEssayTopicTitle={adminData.updateEssayTopicTitle}
+              reorderEssayTopics={adminData.reorderEssayTopics}
             />
           )}
 
@@ -170,12 +173,15 @@ export default function ContentManagerPage({
               title="Short Essay Manager"
               description="Manage short essay topics by module. Add modules and tick topics when completed."
               icon="article"
+              moduleType="shortEssay"
               essayModules={adminData.shortEssayModules}
               addEssayModule={adminData.addShortEssayModule}
               deleteEssayModule={adminData.deleteShortEssayModule}
               addEssayTopic={adminData.addShortEssayTopic}
               deleteEssayTopic={adminData.deleteShortEssayTopic}
               toggleEssayTopic={adminData.toggleShortEssayTopic}
+              updateEssayTopicTitle={adminData.updateEssayTopicTitle}
+              reorderEssayTopics={adminData.reorderEssayTopics}
             />
           )}
 
@@ -184,12 +190,15 @@ export default function ContentManagerPage({
               title="Short Note Manager"
               description="Manage short note topics by module. Add modules and tick topics when completed."
               icon="edit_note"
+              moduleType="shortNote"
               essayModules={adminData.shortNoteModules}
               addEssayModule={adminData.addShortNoteModule}
               deleteEssayModule={adminData.deleteShortNoteModule}
               addEssayTopic={adminData.addShortNoteTopic}
               deleteEssayTopic={adminData.deleteShortNoteTopic}
               toggleEssayTopic={adminData.toggleShortNoteTopic}
+              updateEssayTopicTitle={adminData.updateEssayTopicTitle}
+              reorderEssayTopics={adminData.reorderEssayTopics}
             />
           )}
         </div>

@@ -143,4 +143,18 @@ mixin (
     };
     ContentLib.deleteEssayTopic(essayModules, moduleId, topicId);
   };
+
+  public shared func updateEssayTopicTitle(adminToken : Text, moduleId : Text, topicId : Text, newTitle : Text) : async () {
+    if (not ContentLib.verifyAdmin(adminToken)) {
+      Runtime.trap("Unauthorized");
+    };
+    ContentLib.updateEssayTopicTitle(essayModules, moduleId, topicId, newTitle);
+  };
+
+  public shared func reorderEssayTopics(adminToken : Text, moduleId : Text, topicIds : [Text]) : async () {
+    if (not ContentLib.verifyAdmin(adminToken)) {
+      Runtime.trap("Unauthorized");
+    };
+    ContentLib.reorderEssayTopics(essayModules, moduleId, topicIds);
+  };
 };

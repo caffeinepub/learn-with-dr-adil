@@ -304,10 +304,10 @@ function MCQModal({
           {/* Validation error */}
           {validationError && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border-2 border-red-400 rounded-lg">
-              <span className="material-symbols-outlined text-error text-sm">
+              <span className="material-symbols-outlined text-red-600 text-sm">
                 error
               </span>
-              <p className="text-sm font-bold text-error font-body">
+              <p className="text-sm font-bold text-red-600 font-body">
                 {validationError}
               </p>
             </div>
@@ -384,7 +384,7 @@ function DeleteConfirm({
               onConfirm();
               onClose();
             }}
-            className="px-6 py-2 bg-error text-white border-2 border-black rounded-full font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+            className="px-6 py-2 bg-red-600 text-white border-2 border-black rounded-full font-headline font-bold text-sm shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
           >
             Delete
           </button>
@@ -419,7 +419,7 @@ function MCQCard({
     >
       <div className="flex items-start gap-3">
         {/* Index badge */}
-        <span className="w-8 h-8 shrink-0 flex items-center justify-center bg-surface-container-low border-2 border-black rounded-lg font-headline font-black text-xs">
+        <span className="w-8 h-8 shrink-0 flex items-center justify-center bg-[#f3f3f4] border-2 border-black rounded-lg font-headline font-black text-xs">
           {String(index).padStart(2, "0")}
         </span>
 
@@ -534,7 +534,7 @@ function MCQCard({
             type="button"
             data-ocid={`mcq_hub.mcq.delete_button.${index}`}
             onClick={onDelete}
-            className="p-1.5 rounded-lg hover:bg-red-50 hover:text-error transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
             title="Delete"
             aria-label="Delete MCQ"
           >
@@ -625,7 +625,7 @@ export default function MCQHub({
       {/* Filter bar */}
       <div
         data-ocid="mcq_hub.filter.panel"
-        className="bg-surface-container-low border-2 border-black rounded-xl p-4"
+        className="bg-[#f3f3f4] border-2 border-black rounded-xl p-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Search */}

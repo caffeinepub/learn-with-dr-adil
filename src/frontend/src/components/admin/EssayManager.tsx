@@ -6,24 +6,39 @@ interface EssayManagerProps {
   title?: string;
   description?: string;
   icon?: string;
+  moduleType?: string;
   essayModules: EssayModule[];
   addEssayModule: (name: string) => void;
   deleteEssayModule: (id: string) => void;
   addEssayTopic: (moduleId: string, title: string) => void;
   deleteEssayTopic: (moduleId: string, topicId: string) => void;
   toggleEssayTopic: (moduleId: string, topicId: string) => void;
+  updateEssayTopicTitle: (
+    moduleId: string,
+    topicId: string,
+    newTitle: string,
+    moduleType: string,
+  ) => void;
+  reorderEssayTopics: (
+    moduleId: string,
+    topicIds: string[],
+    moduleType: string,
+  ) => void;
 }
 
 export default function EssayManager({
   title = "Essay Manager",
   description = "Organize essay topics by module. Add new modules as columns and tick topics when completed.",
   icon = "edit_note",
+  moduleType = "essay",
   essayModules,
   addEssayModule,
   deleteEssayModule,
   addEssayTopic,
   deleteEssayTopic,
   toggleEssayTopic,
+  updateEssayTopicTitle,
+  reorderEssayTopics,
 }: EssayManagerProps) {
   const [newModuleName, setNewModuleName] = useState("");
   const [newTopicInputs, setNewTopicInputs] = useState<Record<string, string>>(
@@ -34,6 +49,13 @@ export default function EssayManager({
   );
   const [addingModule, setAddingModule] = useState(false);
   const [addingTopics, setAddingTopics] = useState<Record<string, boolean>>({});
+
+  // Edit state: topicId → draft title
+  const [editingTopic, setEditingTopic] = useState<{
+    moduleId: string;
+    topicId: string;
+    draft: string;
+  } | null>(null);
 
   function handleAddModule() {
     const name = newModuleName.trim();
@@ -59,6 +81,42 @@ export default function EssayManager({
     } finally {
       setAddingTopics((prev) => ({ ...prev, [moduleId]: false }));
     }
+  }
+
+  function handleMoveUp(mod: EssayModule, topicIdx: number) {
+    if (topicIdx === 0) return;
+    const ids = mod.topics.map((t) => t.id);
+    const newIds = [...ids];
+    [newIds[topicIdx - 1], newIds[topicIdx]] = [
+      newIds[topicIdx],
+      newIds[topicIdx - 1],
+    ];
+    reorderEssayTopics(mod.id, newIds, moduleType);
+  }
+
+  function handleMoveDown(mod: EssayModule, topicIdx: number) {
+    if (topicIdx === mod.topics.length - 1) return;
+    const ids = mod.topics.map((t) => t.id);
+    const newIds = [...ids];
+    [newIds[topicIdx], newIds[topicIdx + 1]] = [
+      newIds[topicIdx + 1],
+      newIds[topicIdx],
+    ];
+    reorderEssayTopics(mod.id, newIds, moduleType);
+  }
+
+  function handleSaveTopicEdit() {
+    if (!editingTopic) return;
+    const newTitle = editingTopic.draft.trim();
+    if (!newTitle) return;
+    updateEssayTopicTitle(
+      editingTopic.moduleId,
+      editingTopic.topicId,
+      newTitle,
+      moduleType,
+    );
+    toast.success("Topic title updated.");
+    setEditingTopic(null);
   }
 
   return (
@@ -146,16 +204,16 @@ export default function EssayManager({
               <div
                 key={mod.id}
                 data-ocid={`essay_manager.module.card.${mod.id}`}
-                className="bg-surface-container-lowest border-2 border-black rounded-xl overflow-hidden shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+                className="bg-white border-2 border-black rounded-xl overflow-hidden shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
               >
                 {/* Module header */}
-                <div className="bg-surface-container-low border-b-2 border-black p-4 flex items-start justify-between gap-2">
+                <div className="bg-[#f3f3f4] border-b-2 border-black p-4 flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-headline font-extrabold text-base truncate">
                       {mod.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="flex-1 h-2 bg-surface-container border border-black rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-[#ebebeb] border border-black rounded-full overflow-hidden">
                         <div
                           className="h-full bg-primary border-r border-black transition-all"
                           style={{ width: `${pct}%` }}
@@ -179,7 +237,7 @@ export default function EssayManager({
                         : setConfirmDeleteModule(mod.id)
                     }
                     onBlur={() => setConfirmDeleteModule(null)}
-                    className="p-1.5 rounded-lg border-2 border-transparent hover:bg-error-container hover:border-black hover:text-error transition-all shrink-0"
+                    className="p-1.5 rounded-lg border-2 border-transparent hover:bg-red-50 hover:border-black hover:text-red-600 transition-all shrink-0"
                     aria-label={
                       confirmDeleteModule === mod.id
                         ? "Click again to confirm delete"
@@ -204,61 +262,167 @@ export default function EssayManager({
                       No topics yet
                     </li>
                   )}
-                  {mod.topics.map((topic) => (
-                    <li
-                      key={topic.id}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors group"
-                    >
-                      {/* Checkbox */}
-                      <button
-                        type="button"
-                        onClick={() => toggleEssayTopic(mod.id, topic.id)}
-                        className={`w-5 h-5 rounded border-2 border-black flex items-center justify-center shrink-0 transition-all active:scale-90 ${
-                          topic.done
-                            ? "bg-primary border-primary"
-                            : "bg-white hover:bg-surface-container"
-                        }`}
-                        aria-label={
-                          topic.done ? "Mark incomplete" : "Mark complete"
-                        }
+                  {mod.topics.map((topic, idx) => {
+                    const isEditing =
+                      editingTopic?.moduleId === mod.id &&
+                      editingTopic?.topicId === topic.id;
+
+                    return (
+                      <li
+                        key={topic.id}
+                        className="flex items-center gap-2 px-3 py-2.5 hover:bg-[#f3f3f4] transition-colors group"
                       >
-                        {topic.done && (
-                          <span
-                            className="material-symbols-outlined text-white"
-                            style={{
-                              fontSize: "12px",
-                              fontVariationSettings: "'FILL' 1, 'wght' 700",
-                            }}
+                        {/* Reorder up/down buttons */}
+                        <div className="flex flex-col gap-0.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveUp(mod, idx)}
+                            disabled={idx === 0}
+                            className="p-0.5 rounded border border-transparent hover:border-black hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                            aria-label="Move topic up"
+                            title="Move up"
                           >
-                            check
-                          </span>
+                            <span
+                              className="material-symbols-outlined text-xs leading-none"
+                              style={{ fontSize: "14px" }}
+                            >
+                              keyboard_arrow_up
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveDown(mod, idx)}
+                            disabled={idx === mod.topics.length - 1}
+                            className="p-0.5 rounded border border-transparent hover:border-black hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                            aria-label="Move topic down"
+                            title="Move down"
+                          >
+                            <span
+                              className="material-symbols-outlined text-xs leading-none"
+                              style={{ fontSize: "14px" }}
+                            >
+                              keyboard_arrow_down
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Checkbox */}
+                        <button
+                          type="button"
+                          onClick={() => toggleEssayTopic(mod.id, topic.id)}
+                          className={`w-5 h-5 rounded border-2 border-black flex items-center justify-center shrink-0 transition-all active:scale-90 ${
+                            topic.done
+                              ? "bg-primary border-primary"
+                              : "bg-white hover:bg-[#f3f3f4]"
+                          }`}
+                          aria-label={
+                            topic.done ? "Mark incomplete" : "Mark complete"
+                          }
+                        >
+                          {topic.done && (
+                            <span
+                              className="material-symbols-outlined text-white"
+                              style={{
+                                fontSize: "12px",
+                                fontVariationSettings: "'FILL' 1, 'wght' 700",
+                              }}
+                            >
+                              check
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Topic title / inline edit */}
+                        {isEditing ? (
+                          <div className="flex-1 flex items-center gap-1.5 min-w-0">
+                            <input
+                              data-ocid={`essay_manager.edit_topic.input.${topic.id}`}
+                              type="text"
+                              value={editingTopic.draft}
+                              onChange={(e) =>
+                                setEditingTopic((prev) =>
+                                  prev
+                                    ? { ...prev, draft: e.target.value }
+                                    : prev,
+                                )
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSaveTopicEdit();
+                                if (e.key === "Escape") setEditingTopic(null);
+                              }}
+                              ref={(el) => {
+                                if (el) el.focus();
+                              }}
+                              className="flex-1 min-w-0 border-2 border-black rounded-md px-2 py-0.5 text-xs font-body bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            <button
+                              type="button"
+                              data-ocid={`essay_manager.save_topic_edit.button.${topic.id}`}
+                              onClick={handleSaveTopicEdit}
+                              disabled={!editingTopic.draft.trim()}
+                              className="bg-primary text-white rounded-md border-2 border-black px-2 py-0.5 text-xs font-headline font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-container transition-colors shadow-[1px_1px_0_0_rgba(0,0,0,1)] active:shadow-none shrink-0"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingTopic(null)}
+                              className="p-0.5 rounded hover:text-red-600 transition-colors shrink-0"
+                              aria-label="Cancel edit"
+                            >
+                              <span className="material-symbols-outlined text-sm">
+                                close
+                              </span>
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span
+                              className={`flex-1 text-sm font-medium font-body transition-all min-w-0 break-words ${
+                                topic.done
+                                  ? "line-through text-zinc-400"
+                                  : "text-on-surface"
+                              }`}
+                            >
+                              {topic.title}
+                            </span>
+
+                            {/* Edit topic button */}
+                            <button
+                              type="button"
+                              data-ocid={`essay_manager.edit_topic.button.${topic.id}`}
+                              onClick={() =>
+                                setEditingTopic({
+                                  moduleId: mod.id,
+                                  topicId: topic.id,
+                                  draft: topic.title,
+                                })
+                              }
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:text-primary transition-all shrink-0"
+                              aria-label={`Edit topic ${topic.title}`}
+                              title="Edit topic name"
+                            >
+                              <span className="material-symbols-outlined text-sm">
+                                edit
+                              </span>
+                            </button>
+
+                            {/* Delete topic */}
+                            <button
+                              type="button"
+                              onClick={() => deleteEssayTopic(mod.id, topic.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:text-red-600 transition-all shrink-0"
+                              aria-label={`Delete topic ${topic.title}`}
+                            >
+                              <span className="material-symbols-outlined text-sm">
+                                close
+                              </span>
+                            </button>
+                          </>
                         )}
-                      </button>
-
-                      {/* Topic title */}
-                      <span
-                        className={`flex-1 text-sm font-medium font-body transition-all min-w-0 break-words ${
-                          topic.done
-                            ? "line-through text-zinc-400"
-                            : "text-on-surface"
-                        }`}
-                      >
-                        {topic.title}
-                      </span>
-
-                      {/* Delete topic */}
-                      <button
-                        type="button"
-                        onClick={() => deleteEssayTopic(mod.id, topic.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:text-error transition-all shrink-0"
-                        aria-label={`Delete topic ${topic.title}`}
-                      >
-                        <span className="material-symbols-outlined text-sm">
-                          close
-                        </span>
-                      </button>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
 
                 {/* Add topic input */}

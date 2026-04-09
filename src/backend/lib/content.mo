@@ -120,4 +120,44 @@ module {
       };
     };
   };
+
+  public func updateEssayTopicTitle(essayModules : Map.Map<Text, Types.EssayModule>, moduleId : Text, topicId : Text, newTitle : Text) : () {
+    switch (essayModules.get(moduleId)) {
+      case null {};
+      case (?em) {
+        let tid = topicId;
+        let updatedTopics = em.topics.map(
+          func(t) {
+            if (t.id == tid) { { t with title = newTitle } } else { t }
+          }
+        );
+        essayModules.add(moduleId, { em with topics = updatedTopics });
+      };
+    };
+  };
+
+  public func reorderEssayTopics(essayModules : Map.Map<Text, Types.EssayModule>, moduleId : Text, topicIds : [Text]) : () {
+    switch (essayModules.get(moduleId)) {
+      case null {};
+      case (?em) {
+        // Build ordered list: first topics matching topicIds in order, then any remaining
+        let ordered = topicIds.map(
+          func(tid) { em.topics.find(func(t) { t.id == tid }) }
+        );
+        var result : [Types.EssayTopic] = [];
+        for (opt in ordered.vals()) {
+          switch (opt) {
+            case (?t) { result := result.concat([t]) };
+            case null {};
+          };
+        };
+        // Append topics not in the provided list
+        let remaining = em.topics.filter(func(t) {
+          topicIds.find(func(tid) { tid == t.id }) == null
+        });
+        result := result.concat(remaining);
+        essayModules.add(moduleId, { em with topics = result });
+      };
+    };
+  };
 };

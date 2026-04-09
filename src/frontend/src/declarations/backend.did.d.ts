@@ -61,7 +61,15 @@ export interface _SERVICE {
   'getModules' : ActorMethod<[], Array<Module>>,
   'getModulesBySubject' : ActorMethod<[string], Array<Module>>,
   'getSubjects' : ActorMethod<[], Array<Subject>>,
+  'reorderEssayTopics' : ActorMethod<
+    [string, string, Array<string>],
+    undefined
+  >,
   'updateEssayModule' : ActorMethod<[string, EssayModule], undefined>,
+  'updateEssayTopicTitle' : ActorMethod<
+    [string, string, string, string],
+    undefined
+  >,
   'updateMCQ' : ActorMethod<[string, MCQ], undefined>,
   'updateModule' : ActorMethod<[string, Module], undefined>,
   'updateSubject' : ActorMethod<[string, Subject], undefined>,
